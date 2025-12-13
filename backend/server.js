@@ -13,6 +13,7 @@ app.use(cors({
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:8081',
+    'https://savedieties.onrender.com',
     process.env.FRONTEND_URL || 'https://your-frontend-domain.com'
   ],
   credentials: true
