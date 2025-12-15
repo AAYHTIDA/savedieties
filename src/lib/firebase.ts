@@ -211,17 +211,17 @@ export const firebaseApi = {
   } = {}): Promise<CourtCasesResponse> {
     const casesRef = collection(db, CASES_COLLECTION);
     
-    // Simple query to get all cases first, then filter client-side
+    // Fetch all cases first, then filter client-side to avoid composite index issues
     const q = query(casesRef, orderBy(params.sortBy || 'createdAt', params.sortOrder || 'desc'));
     const snapshot = await getDocs(q);
     let cases = snapshot.docs.map(docToCourtCase);
 
-    // Apply status filter (client-side)
+    // Apply status filter (client-side to avoid Firestore composite index requirement)
     if (params.status && params.status !== 'all') {
       console.log('Filtering by status:', params.status);
-      console.log('Available statuses:', [...new Set(cases.map(c => c.status))]);
+      console.log('Available statuses in data:', [...new Set(cases.map(c => c.status))]);
       cases = cases.filter(courtCase => courtCase.status === params.status);
-      console.log('Filtered cases count:', cases.length);
+      console.log('Cases after filter:', cases.length);
     }
 
     // Apply search filter (client-side)

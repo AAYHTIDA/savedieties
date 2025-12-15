@@ -335,11 +335,11 @@ export default function CourtCases() {
             </Select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Case Studies</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
             <Select value={caseStudy} onValueChange={setCaseStudy}>
-              <SelectTrigger><SelectValue placeholder="All Case Studies" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="All States" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Case Studies</SelectItem>
+                <SelectItem value="all">All States</SelectItem>
                 <SelectItem value="heritage">Completed</SelectItem>
                 <SelectItem value="land">In Court</SelectItem>
                 <SelectItem value="religious">In Progress</SelectItem>
