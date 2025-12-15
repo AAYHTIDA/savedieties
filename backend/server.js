@@ -90,7 +90,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Image upload route
+// Single image upload route (existing functionality)
 app.post('/api/court-cases/upload', upload.single('photo'), (req, res) => {
   try {
     // Check if file was uploaded
@@ -118,6 +118,45 @@ app.post('/api/court-cases/upload', upload.single('photo'), (req, res) => {
 
   } catch (error) {
     console.error('Upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error during file upload'
+    });
+  }
+});
+
+// Multiple images upload route
+app.post('/api/court-cases/upload-multiple', upload.array('photos', 10), (req, res) => {
+  try {
+    // Check if files were uploaded
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No files uploaded. Please select image files.'
+      });
+    }
+
+    // Generate public URLs for all uploaded images
+    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    const uploadedImages = req.files.map(file => ({
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size,
+      mimetype: file.mimetype,
+      url: `${baseUrl}/photos/${file.filename}`,
+      uploadedAt: new Date().toISOString()
+    }));
+
+    // Return success response
+    res.json({
+      success: true,
+      images: uploadedImages,
+      count: uploadedImages.length,
+      message: `${uploadedImages.length} image(s) uploaded successfully`
+    });
+
+  } catch (error) {
+    console.error('Multiple upload error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error during file upload'

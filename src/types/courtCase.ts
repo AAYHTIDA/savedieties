@@ -15,6 +15,12 @@ export interface CourtCase {
   pdfFileName?: string;
   imageUrl?: string;
   imageName?: string;
+  // Multiple images support
+  images?: Array<{
+    url: string;
+    filename: string;
+    uploadedAt: string;
+  }>;
   createdAt: any;
   updatedAt: any;
 }

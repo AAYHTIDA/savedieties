@@ -21,7 +21,7 @@ const courtCaseSchema = z.object({
 
 interface CourtCaseFormProps {
   courtCase?: CourtCase;
-  onSubmit: (data: CourtCaseFormData, imageFile?: File) => Promise<void>;
+  onSubmit: (data: CourtCaseFormData, imageFile?: File, additionalImages?: File[]) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -34,6 +34,7 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
 }) => {
   const [error, setError] = useState<string>('');
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [additionalImages, setAdditionalImages] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
 
   const isEditing = !!courtCase;
@@ -69,7 +70,7 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
   const handleFormSubmit = async (data: CourtCaseFormData) => {
     try {
       setError('');
-      await onSubmit(data, selectedImageFile || undefined);
+      await onSubmit(data, selectedImageFile || undefined, additionalImages.length > 0 ? additionalImages : undefined);
     } catch (error: any) {
       setError(error.message || 'Failed to save court case');
     }
@@ -123,6 +124,30 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
 
   const removeImageFile = () => {
     setSelectedImageFile(null);
+  };
+
+  const handleAdditionalImagesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    const validFiles = files.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        setError('Only image files are allowed');
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size must be less than 5MB');
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length > 0) {
+      setAdditionalImages(prev => [...prev, ...validFiles].slice(0, 10)); // Max 10 images
+      setError('');
+    }
+  };
+
+  const removeAdditionalImage = (index: number) => {
+    setAdditionalImages(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -278,6 +303,79 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
                     className="h-32 w-auto rounded-lg object-cover"
                   />
                 )}
+              </div>
+            )}
+          </div>
+
+          {/* Additional Images Upload */}
+          <div className="space-y-2">
+            <Label>Additional Images (Optional)</Label>
+            <p className="text-sm text-gray-500">Upload up to 10 additional images for this court case</p>
+            
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleAdditionalImagesChange}
+                className="hidden"
+                id="additional-images-upload"
+                disabled={isLoading}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => document.getElementById('additional-images-upload')?.click()}
+                disabled={isLoading || additionalImages.length >= 10}
+                className="w-full"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Add More Images ({additionalImages.length}/10)
+              </Button>
+            </div>
+
+            {/* Display selected additional images */}
+            {additionalImages.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                {additionalImages.map((file, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Additional ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeAdditionalImage(index)}
+                      disabled={isLoading}
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                    <p className="text-xs text-gray-500 mt-1 truncate">{file.name}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Display existing additional images for editing */}
+            {isEditing && courtCase?.images && courtCase.images.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">Current additional images:</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {courtCase.images.map((image, index) => (
+                    <div key={index} className="space-y-1">
+                      <img
+                        src={image.url}
+                        alt={`Existing ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg"
+                      />
+                      <p className="text-xs text-gray-500 truncate">{image.filename}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

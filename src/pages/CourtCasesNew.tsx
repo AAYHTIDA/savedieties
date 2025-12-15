@@ -139,13 +139,13 @@ export default function CourtCases() {
   });
 
   const createMutation = useMutation({
-    mutationFn: ({ data, file }: { data: CourtCaseFormData; file?: File }) => firebaseApi.createCourtCase(data, file),
+    mutationFn: ({ data, file, additionalImages }: { data: CourtCaseFormData; file?: File; additionalImages?: File[] }) => firebaseApi.createCourtCase(data, file, additionalImages),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['courtCases'] }); setShowForm(false); toast.success('Court case created successfully'); },
     onError: (error: any) => { toast.error(error.message || 'Failed to create court case'); },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data, file }: { id: string; data: CourtCaseFormData; file?: File }) => firebaseApi.updateCourtCase(id, data, file),
+    mutationFn: ({ id, data, file, additionalImages }: { id: string; data: CourtCaseFormData; file?: File; additionalImages?: File[] }) => firebaseApi.updateCourtCase(id, data, file, additionalImages),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['courtCases'] }); setShowForm(false); setEditingCase(null); toast.success('Court case updated successfully'); },
     onError: (error: any) => { toast.error(error.message || 'Failed to update court case'); },
   });
@@ -161,9 +161,9 @@ export default function CourtCases() {
     setPage(1);
   }, [search]);
 
-  const handleFormSubmit = async (data: CourtCaseFormData, file?: File) => {
-    if (editingCase) { await updateMutation.mutateAsync({ id: editingCase.id, data, file }); }
-    else { await createMutation.mutateAsync({ data, file }); }
+  const handleFormSubmit = async (data: CourtCaseFormData, file?: File, additionalImages?: File[]) => {
+    if (editingCase) { await updateMutation.mutateAsync({ id: editingCase.id, data, file, additionalImages }); }
+    else { await createMutation.mutateAsync({ data, file, additionalImages }); }
   };
 
   const handleEdit = (courtCase: CourtCase) => { setEditingCase(courtCase); setShowForm(true); };
