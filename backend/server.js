@@ -14,9 +14,10 @@ app.use(cors({
     'http://localhost:5173',
     'http://localhost:8081',
     'https://savediety.netlify.app',
+    'https://savedeities1.netlify.app',
     'https://savedieties.onrender.com',
-    process.env.FRONTEND_URL || 'https://savediety.netlify.app'
-  ],
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
   credentials: true
 }));
 app.use(express.json());
