@@ -125,7 +125,7 @@ export default function CourtCases() {
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
   const [search, setSearch] = useState('');
-  const [status] = useState('all');
+  const [status, setStatus] = useState('all');
   const [district, setDistrict] = useState('all');
   const [caseStudy, setCaseStudy] = useState('all');
   const [showForm, setShowForm] = useState(false);
@@ -133,19 +133,34 @@ export default function CourtCases() {
   const [showLogin, setShowLogin] = useState(false);
 
   const { data: courtCasesData, isLoading, error, refetch } = useQuery({
-    queryKey: ['courtCases', page, limit, search, status],
-    queryFn: () => firebaseApi.getCourtCases({ page, limit, search: search || undefined, status: status !== 'all' ? status : undefined, sortBy: 'createdAt', sortOrder: 'desc' }),
+    queryKey: ['courtCases', page, limit, search, status, district, caseStudy],
+    queryFn: () => {
+      console.log('Fetching court cases with filters:', { 
+        page, 
+        limit, 
+        search: search || undefined, 
+        status: status !== 'all' ? status : undefined 
+      });
+      return firebaseApi.getCourtCases({ 
+        page, 
+        limit, 
+        search: search || undefined, 
+        status: status !== 'all' ? status : undefined,
+        sortBy: 'createdAt', 
+        sortOrder: 'desc' 
+      });
+    },
     refetchInterval: 30000,
   });
 
   const createMutation = useMutation({
-    mutationFn: ({ data, file, additionalImages }: { data: CourtCaseFormData; file?: File; additionalImages?: File[] }) => firebaseApi.createCourtCase(data, file, additionalImages),
+    mutationFn: ({ data, file }: { data: CourtCaseFormData; file?: File }) => firebaseApi.createCourtCase(data, file),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['courtCases'] }); setShowForm(false); toast.success('Court case created successfully'); },
     onError: (error: any) => { toast.error(error.message || 'Failed to create court case'); },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data, file, additionalImages }: { id: string; data: CourtCaseFormData; file?: File; additionalImages?: File[] }) => firebaseApi.updateCourtCase(id, data, file, additionalImages),
+    mutationFn: ({ id, data, file }: { id: string; data: CourtCaseFormData; file?: File }) => firebaseApi.updateCourtCase(id, data, file),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['courtCases'] }); setShowForm(false); setEditingCase(null); toast.success('Court case updated successfully'); },
     onError: (error: any) => { toast.error(error.message || 'Failed to update court case'); },
   });
@@ -156,14 +171,14 @@ export default function CourtCases() {
     onError: (error: any) => { toast.error(error.message || 'Failed to delete court case'); },
   });
 
-  // Reset page when search changes
+  // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, status, district, caseStudy]);
 
-  const handleFormSubmit = async (data: CourtCaseFormData, file?: File, additionalImages?: File[]) => {
-    if (editingCase) { await updateMutation.mutateAsync({ id: editingCase.id, data, file, additionalImages }); }
-    else { await createMutation.mutateAsync({ data, file, additionalImages }); }
+  const handleFormSubmit = async (data: CourtCaseFormData, file?: File) => {
+    if (editingCase) { await updateMutation.mutateAsync({ id: editingCase.id, data, file }); }
+    else { await createMutation.mutateAsync({ data, file }); }
   };
 
   const handleEdit = (courtCase: CourtCase) => { setEditingCase(courtCase); setShowForm(true); };
@@ -255,9 +270,9 @@ export default function CourtCases() {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
+        {/* Search Bar and Clear Filters */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="relative max-w-md flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search court cases..."
@@ -266,16 +281,35 @@ export default function CourtCases() {
               className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
+          {(search || status !== 'all' || district !== 'all' || caseStudy !== 'all') && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearch('');
+                setStatus('all');
+                setDistrict('all');
+                setCaseStudy('all');
+              }}
+              className="whitespace-nowrap"
+            >
+              Clear Filters
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Choose State</label>
-            <Select value="all" onValueChange={() => {}}>
-              <SelectTrigger><SelectValue placeholder="All States" /></SelectTrigger>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Case Status</label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All States</SelectItem>
-                <SelectItem value="kerala">Kerala</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="In Progress">In Progress</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="In Court">In Court</SelectItem>
+                <SelectItem value="Closed">Closed</SelectItem>
+                <SelectItem value="Settled">Settled</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -283,7 +317,23 @@ export default function CourtCases() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Choose District</label>
             <Select value={district} onValueChange={setDistrict}>
               <SelectTrigger><SelectValue placeholder="All Districts" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">All Districts</SelectItem></SelectContent>
+              <SelectContent>
+                <SelectItem value="all">All Districts</SelectItem>
+                <SelectItem value="thiruvananthapuram">Thiruvananthapuram</SelectItem>
+                <SelectItem value="kollam">Kollam</SelectItem>
+                <SelectItem value="pathanamthitta">Pathanamthitta</SelectItem>
+                <SelectItem value="alappuzha">Alappuzha</SelectItem>
+                <SelectItem value="kottayam">Kottayam</SelectItem>
+                <SelectItem value="idukki">Idukki</SelectItem>
+                <SelectItem value="ernakulam">Ernakulam</SelectItem>
+                <SelectItem value="thrissur">Thrissur</SelectItem>
+                <SelectItem value="palakkad">Palakkad</SelectItem>
+                <SelectItem value="malappuram">Malappuram</SelectItem>
+                <SelectItem value="kozhikode">Kozhikode</SelectItem>
+                <SelectItem value="wayanad">Wayanad</SelectItem>
+                <SelectItem value="kannur">Kannur</SelectItem>
+                <SelectItem value="kasaragod">Kasaragod</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <div>
@@ -317,12 +367,58 @@ export default function CourtCases() {
 
         {courtCasesData && (
           <>
+            {/* Results indicator */}
+            <div className="mb-4 text-sm text-gray-600">
+              {courtCasesData.pagination.total > 0 ? (
+                <>
+                  Showing {courtCasesData.cases.length} of {courtCasesData.pagination.total} court cases
+                  {(search || status !== 'all' || district !== 'all' || caseStudy !== 'all') && (
+                    <span className="ml-2 text-orange-600 font-medium">
+                      (filtered)
+                    </span>
+                  )}
+                </>
+              ) : (
+                'No court cases found'
+              )}
+            </div>
+
             {courtCasesData.cases.length === 0 ? (
               <div className="text-center py-12">
                 <Scale className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No court cases found</h3>
-                <p className="text-gray-600 mb-4">Get started by adding your first court case</p>
-                {isAdmin && <Button onClick={() => setShowForm(true)} className="bg-orange-600 hover:bg-orange-700"><Plus className="h-4 w-4 mr-2" />Add First Case</Button>}
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {(search || status !== 'all' || district !== 'all' || caseStudy !== 'all') 
+                    ? 'No court cases match your filters' 
+                    : 'No court cases found'
+                  }
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {(search || status !== 'all' || district !== 'all' || caseStudy !== 'all') 
+                    ? 'Try adjusting your search criteria or clear the filters' 
+                    : 'Get started by adding your first court case'
+                  }
+                </p>
+                <div className="flex gap-2 justify-center">
+                  {(search || status !== 'all' || district !== 'all' || caseStudy !== 'all') && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setSearch('');
+                        setStatus('all');
+                        setDistrict('all');
+                        setCaseStudy('all');
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
+                  {isAdmin && (
+                    <Button onClick={() => setShowForm(true)} className="bg-orange-600 hover:bg-orange-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {(search || status !== 'all' || district !== 'all' || caseStudy !== 'all') ? 'Add New Case' : 'Add First Case'}
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : (
               <>
