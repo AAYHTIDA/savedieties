@@ -37,9 +37,9 @@ const CourtCaseCardNew: React.FC<{
   };
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 max-w-sm mx-auto">
+    <div className="bg-orange-50 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 max-w-sm mx-auto h-full flex flex-col">
       {/* Image Section */}
-      <div className="relative h-64 bg-gray-100">
+      <div className="relative h-64 bg-gray-100 flex-shrink-0">
         {/* Status Badge */}
         <div className="absolute top-4 right-4 z-10">
           <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
@@ -76,13 +76,13 @@ const CourtCaseCardNew: React.FC<{
       </div>
 
       {/* Bottom Cream Section */}
-      <div className="bg-orange-50 p-6">
+      <div className="bg-orange-50 p-6 flex-1 flex flex-col">
         <h3 className="text-gray-800 font-bold text-lg mb-3 line-clamp-2">{courtCase.caseTitle}</h3>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+        <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">
           {courtCase.description || `Case filed on ${formatDate(courtCase.dateFiled)} regarding ${courtCase.caseType || 'legal proceedings'}.`}
         </p>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           <Button
             className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center gap-2"
             onClick={() => onEdit && showActions && onEdit(courtCase)}
@@ -111,8 +111,6 @@ const CourtCaseCardNew: React.FC<{
             </div>
           )}
         </div>
-
-
       </div>
     </div>
   );
@@ -422,7 +420,7 @@ export default function CourtCases() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8 auto-rows-fr">
                   {courtCasesData.cases.map((courtCase) => (
                     <CourtCaseCardNew key={courtCase.id} courtCase={courtCase} onEdit={isAdmin ? handleEdit : undefined} onDelete={isAdmin ? handleDelete : undefined} onDownload={handleDownload} showActions={isAdmin} />
                   ))}
