@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { firebaseApi } from '@/lib/firebase';
 import { CourtCase, CourtCaseFormData } from '@/types/courtCase';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
 // Court Case Card Component matching the exact reference design
@@ -21,8 +21,9 @@ const CourtCaseCardNew: React.FC<{
   onEdit?: (courtCase: CourtCase) => void;
   onDelete?: (id: string) => void;
   onDownload?: (courtCase: CourtCase) => void;
+  onKnowMore?: (courtCase: CourtCase) => void;
   showActions?: boolean;
-}> = ({ courtCase, onEdit, onDelete, onDownload, showActions }) => {
+}> = ({ courtCase, onEdit, onDelete, onDownload, onKnowMore, showActions }) => {
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'MMM dd, yyyy');
@@ -85,7 +86,7 @@ const CourtCaseCardNew: React.FC<{
         <div className="flex items-center justify-between mt-auto">
           <Button
             className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center gap-2"
-            onClick={() => onEdit && showActions && onEdit(courtCase)}
+            onClick={() => onKnowMore && onKnowMore(courtCase)}
           >
             Know More
             <ChevronRight className="h-4 w-4" />
@@ -119,6 +120,7 @@ const CourtCaseCardNew: React.FC<{
 export default function CourtCases() {
   const { user, isAdmin, logout, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
@@ -182,6 +184,7 @@ export default function CourtCases() {
   const handleEdit = (courtCase: CourtCase) => { setEditingCase(courtCase); setShowForm(true); };
   const handleDelete = async (id: string) => { if (window.confirm('Are you sure you want to delete this court case?')) { deleteMutation.mutate(id); } };
   const handleDownload = (courtCase: CourtCase) => { if (courtCase.pdfFileUrl) { window.open(courtCase.pdfFileUrl, '_blank'); } };
+  const handleKnowMore = (courtCase: CourtCase) => { navigate(`/court-cases/${courtCase.id}`); };
   const handleCloseForm = () => { setShowForm(false); setEditingCase(null); };
 
   if (authLoading) {
@@ -422,7 +425,7 @@ export default function CourtCases() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8 auto-rows-fr">
                   {courtCasesData.cases.map((courtCase) => (
-                    <CourtCaseCardNew key={courtCase.id} courtCase={courtCase} onEdit={isAdmin ? handleEdit : undefined} onDelete={isAdmin ? handleDelete : undefined} onDownload={handleDownload} showActions={isAdmin} />
+                    <CourtCaseCardNew key={courtCase.id} courtCase={courtCase} onEdit={isAdmin ? handleEdit : undefined} onDelete={isAdmin ? handleDelete : undefined} onDownload={handleDownload} onKnowMore={handleKnowMore} showActions={isAdmin} />
                   ))}
                 </div>
                 {courtCasesData.pagination.totalPages > 1 && (

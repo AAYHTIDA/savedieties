@@ -1,60 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   ArrowLeft, 
   Calendar, 
-  FileText, 
-  Download, 
+  MapPin, 
+  Scale, 
   User, 
-  Building, 
-  Gavel,
-  AlertCircle,
-  Scale,
-  Loader2
+  FileText, 
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  X
 } from 'lucide-react';
 import { firebaseApi } from '@/lib/firebase';
 import { format } from 'date-fns';
 
-const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'in progress':
-      return 'bg-orange-100 text-orange-800 border-orange-200';
-    case 'active':
-      return 'bg-green-100 text-green-800 border-green-200';
-    case 'closed':
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    case 'in court':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    case 'settled':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-};
-
-const getPriorityColor = (priority: string) => {
-  switch (priority.toLowerCase()) {
-    case 'high':
-      return 'bg-red-100 text-red-800 border-red-200';
-    case 'medium':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    case 'low':
-      return 'bg-green-100 text-green-800 border-green-200';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-};
-
-export default function CourtCaseDetail() {
+const CourtCaseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const { data: courtCase, isLoading, error } = useQuery({
     queryKey: ['courtCase', id],
@@ -70,38 +39,99 @@ export default function CourtCaseDetail() {
     }
   };
 
-  const handleDownload = () => {
-    if (courtCase?.pdfFileUrl) {
-      window.open(courtCase.pdfFileUrl, '_blank');
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'in progress':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'in court':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'closed':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'settled':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const allImages = React.useMemo(() => {
+    if (!courtCase) return [];
+    
+    const images = [];
+    
+    // Add main image if exists
+    if (courtCase.imageUrl) {
+      images.push({
+        url: courtCase.imageUrl,
+        filename: courtCase.imageName || 'Main Image',
+        uploadedAt: courtCase.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        isMain: true
+      });
+    }
+    
+    // Add additional images if exists
+    if (courtCase.images && courtCase.images.length > 0) {
+      images.push(...courtCase.images.map(img => ({ ...img, isMain: false })));
+    }
+    
+    return images;
+  }, [courtCase]);
+
+  const openImageModal = (index: number) => {
+    setSelectedImageIndex(index);
+  };
+
+  const closeImageModal = () => {
+    setSelectedImageIndex(null);
+  };
+
+  const nextImage = () => {
+    if (selectedImageIndex !== null && selectedImageIndex < allImages.length - 1) {
+      setSelectedImageIndex(selectedImageIndex + 1);
+    }
+  };
+
+  const prevImage = () => {
+    if (selectedImageIndex !== null && selectedImageIndex > 0) {
+      setSelectedImageIndex(selectedImageIndex - 1);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading court case details...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !courtCase) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4">
-          <Alert variant="destructive">
-            <AlertDescription>
-              Court case not found or failed to load.
-            </AlertDescription>
-          </Alert>
-          <Button 
-            onClick={() => navigate('/court-cases')} 
-            className="mt-4"
-            variant="outline"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Court Cases
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <Alert variant="destructive">
+              <AlertDescription>
+                {error?.message || 'Court case not found'}
+              </AlertDescription>
+            </Alert>
+            <Button 
+              onClick={() => navigate('/court-cases')} 
+              className="mt-4 w-full"
+              variant="outline"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Court Cases
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -109,46 +139,30 @@ export default function CourtCaseDetail() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               onClick={() => navigate('/court-cases')}
-              className="mr-4"
+              className="flex items-center text-gray-600 hover:text-gray-900"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Cases
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Court Cases
             </Button>
-            <div className="flex items-center gap-3">
-              <Scale className="h-8 w-8 text-primary" />
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">Court Case Details</h1>
-                <p className="text-sm text-gray-500">Case #{courtCase.caseNumber}</p>
-              </div>
-            </div>
+            <Badge className={`${getStatusColor(courtCase.status)} border`}>
+              {courtCase.status}
+            </Badge>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
+          {/* Left Column - Main Details */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Case Image */}
-            {courtCase.imageUrl && (
-              <Card>
-                <CardContent className="p-0">
-                  <img
-                    src={courtCase.imageUrl}
-                    alt={courtCase.caseTitle}
-                    className="w-full h-64 object-cover rounded-t-lg"
-                  />
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Case Information */}
+            {/* Case Title and Basic Info */}
             <Card>
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -156,165 +170,246 @@ export default function CourtCaseDetail() {
                     <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
                       {courtCase.caseTitle}
                     </CardTitle>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Badge variant="outline" className="font-mono">
-                        Case #{courtCase.caseNumber}
-                      </Badge>
-                      <Badge className={getStatusColor(courtCase.status)}>
-                        {courtCase.status}
-                      </Badge>
-                      <Badge className={getPriorityColor(courtCase.priority)}>
-                        {courtCase.priority} Priority
-                      </Badge>
-                    </div>
+                    <CardDescription className="text-lg text-gray-600">
+                      Case Number: {courtCase.caseNumber}
+                    </CardDescription>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {courtCase.description && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-2">Description</h3>
-                    <p className="text-gray-700 leading-relaxed">{courtCase.description}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Case Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Case Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-gray-400" />
+                  <div className="flex items-center text-gray-600">
+                    <Calendar className="mr-3 h-5 w-5 text-orange-600" />
                     <div>
-                      <p className="text-sm text-gray-600">Date Filed</p>
-                      <p className="font-medium">{formatDate(courtCase.dateFiled)}</p>
+                      <p className="text-sm font-medium">Date Filed</p>
+                      <p className="text-lg">{formatDate(courtCase.dateFiled)}</p>
                     </div>
                   </div>
-
+                  
                   {courtCase.courtName && (
-                    <div className="flex items-center gap-3">
-                      <Building className="h-5 w-5 text-gray-400" />
+                    <div className="flex items-center text-gray-600">
+                      <Scale className="mr-3 h-5 w-5 text-orange-600" />
                       <div>
-                        <p className="text-sm text-gray-600">Court</p>
-                        <p className="font-medium">{courtCase.courtName}</p>
+                        <p className="text-sm font-medium">Court</p>
+                        <p className="text-lg">{courtCase.courtName}</p>
                       </div>
                     </div>
                   )}
-
+                  
                   {courtCase.judgeName && (
-                    <div className="flex items-center gap-3">
-                      <Gavel className="h-5 w-5 text-gray-400" />
+                    <div className="flex items-center text-gray-600">
+                      <User className="mr-3 h-5 w-5 text-orange-600" />
                       <div>
-                        <p className="text-sm text-gray-600">Judge</p>
-                        <p className="font-medium">{courtCase.judgeName}</p>
+                        <p className="text-sm font-medium">Judge</p>
+                        <p className="text-lg">{courtCase.judgeName}</p>
                       </div>
                     </div>
                   )}
-
-                  {courtCase.caseType && (
-                    <div className="flex items-center gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-400" />
+                  
+                  {courtCase.priority && (
+                    <div className="flex items-center text-gray-600">
+                      <FileText className="mr-3 h-5 w-5 text-orange-600" />
                       <div>
-                        <p className="text-sm text-gray-600">Case Type</p>
-                        <p className="font-medium">{courtCase.caseType}</p>
+                        <p className="text-sm font-medium">Priority</p>
+                        <p className="text-lg">{courtCase.priority}</p>
                       </div>
                     </div>
                   )}
+                </div>
+              </CardContent>
+            </Card>
 
+            {/* Description */}
+            {courtCase.description && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Case Description</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {courtCase.description}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Additional Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Additional Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {courtCase.plaintiff && (
-                    <div className="flex items-center gap-3">
-                      <User className="h-5 w-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-600">Plaintiff</p>
-                        <p className="font-medium">{courtCase.plaintiff}</p>
-                      </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 mb-1">Plaintiff</p>
+                      <p className="text-gray-900">{courtCase.plaintiff}</p>
                     </div>
                   )}
-
+                  
                   {courtCase.defendant && (
-                    <div className="flex items-center gap-3">
-                      <User className="h-5 w-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-600">Defendant</p>
-                        <p className="font-medium">{courtCase.defendant}</p>
-                      </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 mb-1">Defendant</p>
+                      <p className="text-gray-900">{courtCase.defendant}</p>
                     </div>
                   )}
+                  
+                  {courtCase.caseType && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 mb-1">Case Type</p>
+                      <p className="text-gray-900">{courtCase.caseType}</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 mb-1">Created</p>
+                    <p className="text-gray-900">
+                      {courtCase.createdAt?.toDate ? 
+                        format(courtCase.createdAt.toDate(), 'MMMM dd, yyyy at h:mm a') : 
+                        'Unknown'
+                      }
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {/* Right Column - Images and Documents */}
           <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {courtCase.pdfFileUrl && (
-                  <Button 
-                    onClick={handleDownload} 
-                    className="w-full"
-                    variant="outline"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Document
-                  </Button>
-                )}
-                <Button 
-                  onClick={() => navigate('/court-cases')} 
-                  className="w-full"
-                  variant="outline"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to All Cases
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Case Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Case Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Status</span>
-                  <Badge className={getStatusColor(courtCase.status)}>
-                    {courtCase.status}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Priority</span>
-                  <Badge className={getPriorityColor(courtCase.priority)}>
-                    {courtCase.priority}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Filed</span>
-                  <span className="text-sm font-medium">{formatDate(courtCase.dateFiled)}</span>
-                </div>
-                {courtCase.pdfFileName && (
-                  <div className="pt-2 border-t">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-600 truncate">
-                        {courtCase.pdfFileName}
-                      </span>
-                    </div>
+            {/* Images Gallery */}
+            {allImages.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Images ({allImages.length})</CardTitle>
+                  <CardDescription>
+                    Click on any image to view in full size
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-4">
+                    {allImages.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={image.url}
+                          alt={image.filename}
+                          className="w-full h-48 object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
+                          onClick={() => openImageModal(index)}
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-white text-sm font-medium bg-black bg-opacity-50 px-2 py-1 rounded">
+                              Click to enlarge
+                            </p>
+                          </div>
+                        </div>
+                        {image.isMain && (
+                          <Badge className="absolute top-2 left-2 bg-orange-600 text-white">
+                            Main Image
+                          </Badge>
+                        )}
+                        <div className="mt-2">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {image.filename}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {format(new Date(image.uploadedAt), 'MMM dd, yyyy')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Documents */}
+            {courtCase.pdfFileUrl && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Documents</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center">
+                      <FileText className="h-8 w-8 text-red-600 mr-3" />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {courtCase.pdfFileName || 'Case Document'}
+                        </p>
+                        <p className="text-sm text-gray-500">PDF Document</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(courtCase.pdfFileUrl, '_blank')}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
-      </main>
+      </div>
+
+      {/* Image Modal */}
+      {selectedImageIndex !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+          <div className="relative max-w-4xl max-h-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closeImageModal}
+              className="absolute top-4 right-4 z-10 bg-black bg-opacity-50 text-white hover:bg-opacity-70"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            
+            {allImages.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={prevImage}
+                  disabled={selectedImageIndex === 0}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-black bg-opacity-50 text-white hover:bg-opacity-70 disabled:opacity-30"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={nextImage}
+                  disabled={selectedImageIndex === allImages.length - 1}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-black bg-opacity-50 text-white hover:bg-opacity-70 disabled:opacity-30"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
+              </>
+            )}
+            
+            <img
+              src={allImages[selectedImageIndex].url}
+              alt={allImages[selectedImageIndex].filename}
+              className="max-w-full max-h-full object-contain"
+            />
+            
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-lg">
+              <p className="text-sm font-medium">{allImages[selectedImageIndex].filename}</p>
+              <p className="text-xs opacity-75">
+                {selectedImageIndex + 1} of {allImages.length}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default CourtCaseDetail;
