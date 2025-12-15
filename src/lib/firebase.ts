@@ -173,6 +173,7 @@ const docToCourtCase = (docSnap: any): CourtCase => {
     pdfFileName: data.pdfFileName,
     imageUrl: data.imageUrl,
     imageName: data.imageName,
+    images: data.images,
     createdAt: data.createdAt?.toDate?.() || data.createdAt,
     updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
   };
@@ -266,7 +267,7 @@ export const firebaseApi = {
   },
 
   // Create new court case
-  async createCourtCase(data: CourtCaseFormData, imageFile?: File): Promise<{ message: string; id: string }> {
+  async createCourtCase(data: CourtCaseFormData, imageFile?: File, additionalImages?: File[]): Promise<{ message: string; id: string }> {
     const casesRef = collection(db, CASES_COLLECTION);
     
     // Generate a unique case number
@@ -274,14 +275,16 @@ export const firebaseApi = {
 
     let imageUrl: string | undefined;
     let imageName: string | undefined;
+    let images: Array<{ url: string; filename: string; uploadedAt: string }> = [];
 
-    // Upload image to backend if provided
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
+    // Upload main image to backend if provided
     if (imageFile) {
       try {
         const formData = new FormData();
         formData.append('photo', imageFile);
         
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
         const response = await fetch(`${backendUrl}/api/court-cases/upload`, {
           method: 'POST',
           body: formData
@@ -301,28 +304,70 @@ export const firebaseApi = {
       }
     }
 
-    // Create the document with image info
-    const docRef = await addDoc(casesRef, {
+    // Upload additional images to backend if provided
+    if (additionalImages && additionalImages.length > 0) {
+      try {
+        const formData = new FormData();
+        additionalImages.forEach(file => {
+          formData.append('photos', file);
+        });
+        
+        const response = await fetch(`${backendUrl}/api/court-cases/upload-multiple`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          images = result.images.map((img: any) => ({
+            url: img.url,
+            filename: img.filename,
+            uploadedAt: img.uploadedAt
+          }));
+        } else {
+          throw new Error(result.error || 'Failed to upload additional images');
+        }
+      } catch (error) {
+        console.error('Additional images upload error:', error);
+        throw new Error('Failed to upload additional images to server');
+      }
+    }
+
+    // Create the document with image info - exclude undefined fields for Firestore
+    const docData: any = {
       ...data,
       caseNumber,
       priority: 'Medium', // Default priority
-      imageUrl,
-      imageName,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
-    });
+    };
+    
+    // Only add image fields if they have values (Firestore doesn't accept undefined)
+    if (imageUrl) {
+      docData.imageUrl = imageUrl;
+      docData.imageName = imageName;
+    }
+    if (images.length > 0) {
+      docData.images = images;
+    }
+
+    const docRef = await addDoc(casesRef, docData);
 
     return { message: 'Court case created successfully', id: docRef.id };
   },
 
   // Update existing court case
-  async updateCourtCase(id: string, data: CourtCaseFormData, imageFile?: File): Promise<{ message: string }> {
+  async updateCourtCase(id: string, data: CourtCaseFormData, imageFile?: File, additionalImages?: File[]): Promise<{ message: string }> {
     const docRef = doc(db, CASES_COLLECTION, id);
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
       throw new Error('Court case not found');
     }
+
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const existingData = docSnap.data();
 
     const updateData: any = {
       ...data,
@@ -335,7 +380,6 @@ export const firebaseApi = {
         const formData = new FormData();
         formData.append('photo', imageFile);
         
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
         const response = await fetch(`${backendUrl}/api/court-cases/upload`, {
           method: 'POST',
           body: formData
@@ -352,6 +396,39 @@ export const firebaseApi = {
       } catch (error) {
         console.error('Image upload error:', error);
         throw new Error('Failed to upload image to server');
+      }
+    }
+
+    // Upload additional images to backend if provided
+    if (additionalImages && additionalImages.length > 0) {
+      try {
+        const formData = new FormData();
+        additionalImages.forEach(file => {
+          formData.append('photos', file);
+        });
+        
+        const response = await fetch(`${backendUrl}/api/court-cases/upload-multiple`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          const newImages = result.images.map((img: any) => ({
+            url: img.url,
+            filename: img.filename,
+            uploadedAt: img.uploadedAt
+          }));
+          // Append new images to existing ones
+          const existingImages = existingData.images || [];
+          updateData.images = [...existingImages, ...newImages];
+        } else {
+          throw new Error(result.error || 'Failed to upload additional images');
+        }
+      } catch (error) {
+        console.error('Additional images upload error:', error);
+        throw new Error('Failed to upload additional images to server');
       }
     }
 
