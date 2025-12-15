@@ -37,35 +37,6 @@ export const db = getFirestore(app);
 
 const CASES_COLLECTION = 'cases';
 
-// Helper function to upload multiple images
-const uploadMultipleImages = async (imageFiles: File[]): Promise<Array<{url: string, filename: string, uploadedAt: string}>> => {
-  if (imageFiles.length === 0) return [];
-
-  try {
-    const formData = new FormData();
-    imageFiles.forEach(file => {
-      formData.append('photos', file);
-    });
-    
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-    const response = await fetch(`${backendUrl}/api/court-cases/upload-multiple`, {
-      method: 'POST',
-      body: formData
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      return result.images;
-    } else {
-      throw new Error(result.error || 'Failed to upload images');
-    }
-  } catch (error) {
-    console.error('Multiple images upload error:', error);
-    throw new Error('Failed to upload images to server');
-  }
-};
-
 // Demo cases data to seed the collection
 const demoCases: Omit<CourtCase, 'id'>[] = [
   {
@@ -242,14 +213,13 @@ export const firebaseApi = {
     
     // Fetch all cases first, then filter client-side to avoid composite index issues
     const q = query(casesRef, orderBy(params.sortBy || 'createdAt', params.sortOrder || 'desc'));
-    
     const snapshot = await getDocs(q);
     let cases = snapshot.docs.map(docToCourtCase);
 
     // Apply status filter (client-side to avoid Firestore composite index requirement)
     if (params.status && params.status !== 'all') {
       console.log('Filtering by status:', params.status);
-      console.log('Cases before filter:', cases.map(c => ({ title: c.caseTitle, status: c.status })));
+      console.log('Available statuses in data:', [...new Set(cases.map(c => c.status))]);
       cases = cases.filter(courtCase => courtCase.status === params.status);
       console.log('Cases after filter:', cases.length);
     }
@@ -296,7 +266,7 @@ export const firebaseApi = {
   },
 
   // Create new court case
-  async createCourtCase(data: CourtCaseFormData, imageFile?: File, additionalImages?: File[]): Promise<{ message: string; id: string }> {
+  async createCourtCase(data: CourtCaseFormData, imageFile?: File): Promise<{ message: string; id: string }> {
     const casesRef = collection(db, CASES_COLLECTION);
     
     // Generate a unique case number
@@ -304,9 +274,8 @@ export const firebaseApi = {
 
     let imageUrl: string | undefined;
     let imageName: string | undefined;
-    let images: Array<{url: string, filename: string, uploadedAt: string}> = [];
 
-    // Upload main image to backend if provided (backward compatibility)
+    // Upload image to backend if provided
     if (imageFile) {
       try {
         const formData = new FormData();
@@ -332,11 +301,6 @@ export const firebaseApi = {
       }
     }
 
-    // Upload additional images if provided
-    if (additionalImages && additionalImages.length > 0) {
-      images = await uploadMultipleImages(additionalImages);
-    }
-
     // Create the document with image info
     const docRef = await addDoc(casesRef, {
       ...data,
@@ -344,7 +308,6 @@ export const firebaseApi = {
       priority: 'Medium', // Default priority
       imageUrl,
       imageName,
-      images: images.length > 0 ? images : undefined,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });
