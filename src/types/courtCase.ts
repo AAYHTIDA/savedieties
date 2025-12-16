@@ -21,6 +21,9 @@ export interface CourtCase {
     filename: string;
     uploadedAt: string;
   }>;
+  // Soft delete support
+  isDeleted?: boolean;
+  deletedAt?: any;
   createdAt: any;
   updatedAt: any;
 }

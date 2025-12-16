@@ -174,6 +174,8 @@ const docToCourtCase = (docSnap: any): CourtCase => {
     imageUrl: data.imageUrl,
     imageName: data.imageName,
     images: data.images,
+    isDeleted: data.isDeleted || false,
+    deletedAt: data.deletedAt?.toDate?.() || data.deletedAt,
     createdAt: data.createdAt?.toDate?.() || data.createdAt,
     updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
   };
@@ -216,6 +218,9 @@ export const firebaseApi = {
     const q = query(casesRef, orderBy(params.sortBy || 'createdAt', params.sortOrder || 'desc'));
     const snapshot = await getDocs(q);
     let cases = snapshot.docs.map(docToCourtCase);
+
+    // Filter out soft-deleted cases
+    cases = cases.filter(courtCase => !courtCase.isDeleted);
 
     // Apply status filter (client-side to avoid Firestore composite index requirement)
     if (params.status && params.status !== 'all') {
@@ -437,8 +442,26 @@ export const firebaseApi = {
     return { message: 'Court case updated successfully' };
   },
 
-  // Delete court case
-  async deleteCourtCase(id: string): Promise<{ message: string }> {
+  // Soft delete court case (move to trash)
+  async softDeleteCourtCase(id: string): Promise<{ message: string }> {
+    const docRef = doc(db, CASES_COLLECTION, id);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      throw new Error('Court case not found');
+    }
+
+    await updateDoc(docRef, {
+      isDeleted: true,
+      deletedAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    });
+
+    return { message: 'Court case moved to trash' };
+  },
+
+  // Hard delete court case (permanent)
+  async hardDeleteCourtCase(id: string): Promise<{ message: string }> {
     const docRef = doc(db, CASES_COLLECTION, id);
     const docSnap = await getDoc(docRef);
 
@@ -447,11 +470,53 @@ export const firebaseApi = {
     }
 
     // Note: Local backend images are not automatically deleted
-    // You may want to implement a cleanup endpoint if needed
-
     await deleteDoc(docRef);
 
-    return { message: 'Court case deleted successfully' };
+    return { message: 'Court case permanently deleted' };
+  },
+
+  // Restore court case from trash
+  async restoreCourtCase(id: string): Promise<{ message: string }> {
+    const docRef = doc(db, CASES_COLLECTION, id);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      throw new Error('Court case not found');
+    }
+
+    await updateDoc(docRef, {
+      isDeleted: false,
+      deletedAt: null,
+      updatedAt: Timestamp.now(),
+    });
+
+    return { message: 'Court case restored successfully' };
+  },
+
+  // Get trashed court cases
+  async getTrashedCourtCases(): Promise<CourtCasesResponse> {
+    const casesRef = collection(db, CASES_COLLECTION);
+    // Use simple query and filter client-side to avoid composite index issues
+    const q = query(casesRef, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    const allCases = snapshot.docs.map(docToCourtCase);
+    // Filter for deleted cases client-side
+    const cases = allCases.filter(c => c.isDeleted === true);
+
+    return {
+      cases,
+      pagination: {
+        page: 1,
+        limit: cases.length,
+        total: cases.length,
+        totalPages: 1,
+      },
+    };
+  },
+
+  // Legacy delete (now uses soft delete)
+  async deleteCourtCase(id: string): Promise<{ message: string }> {
+    return this.softDeleteCourtCase(id);
   },
 
   // Update status from "Dismissed" to "In Court" (temporary function)

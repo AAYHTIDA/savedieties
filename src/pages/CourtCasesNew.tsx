@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Plus, Scale, LogOut, User, Home, ChevronRight, FileText, Edit, Trash2, Search } from 'lucide-react';
+import { Loader2, Plus, Scale, LogOut, User, Home, ChevronRight, FileText, Edit, Trash2, Search, Trash, RotateCcw, AlertTriangle } from 'lucide-react';
 import { CourtCaseForm } from '@/components/court-cases/CourtCaseForm';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { useAuth } from '@/contexts/AuthContext';
@@ -131,6 +131,9 @@ export default function CourtCases() {
   const [showForm, setShowForm] = useState(false);
   const [editingCase, setEditingCase] = useState<CourtCase | null>(null);
   const [showLogin, setShowLogin] = useState(false);
+  const [showTrash, setShowTrash] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingCaseId, setDeletingCaseId] = useState<string | null>(null);
 
   const { data: courtCasesData, isLoading, error, refetch } = useQuery({
     queryKey: ['courtCases', page, limit, search, status, district, caseStudy],
@@ -165,10 +168,40 @@ export default function CourtCases() {
     onError: (error: any) => { toast.error(error.message || 'Failed to update court case'); },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => firebaseApi.deleteCourtCase(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['courtCases'] }); toast.success('Court case deleted successfully'); },
+  const softDeleteMutation = useMutation({
+    mutationFn: (id: string) => firebaseApi.softDeleteCourtCase(id),
+    onSuccess: () => { 
+      queryClient.invalidateQueries({ queryKey: ['courtCases'] }); 
+      queryClient.invalidateQueries({ queryKey: ['trashedCases'] });
+      toast.success('Court case moved to trash'); 
+    },
+    onError: (error: any) => { toast.error(error.message || 'Failed to move court case to trash'); },
+  });
+
+  const hardDeleteMutation = useMutation({
+    mutationFn: (id: string) => firebaseApi.hardDeleteCourtCase(id),
+    onSuccess: () => { 
+      queryClient.invalidateQueries({ queryKey: ['courtCases'] }); 
+      queryClient.invalidateQueries({ queryKey: ['trashedCases'] });
+      toast.success('Court case permanently deleted'); 
+    },
     onError: (error: any) => { toast.error(error.message || 'Failed to delete court case'); },
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: (id: string) => firebaseApi.restoreCourtCase(id),
+    onSuccess: () => { 
+      queryClient.invalidateQueries({ queryKey: ['courtCases'] }); 
+      queryClient.invalidateQueries({ queryKey: ['trashedCases'] });
+      toast.success('Court case restored successfully'); 
+    },
+    onError: (error: any) => { toast.error(error.message || 'Failed to restore court case'); },
+  });
+
+  const { data: trashedCasesData, isLoading: isLoadingTrash } = useQuery({
+    queryKey: ['trashedCases'],
+    queryFn: () => firebaseApi.getTrashedCourtCases(),
+    enabled: isAdmin,
   });
 
   // Reset page when filters change
@@ -182,7 +215,11 @@ export default function CourtCases() {
   };
 
   const handleEdit = (courtCase: CourtCase) => { setEditingCase(courtCase); setShowForm(true); };
-  const handleDelete = async (id: string) => { if (window.confirm('Are you sure you want to delete this court case?')) { deleteMutation.mutate(id); } };
+  const handleDeleteClick = (id: string) => { setDeletingCaseId(id); setShowDeleteDialog(true); };
+  const handleSoftDelete = () => { if (deletingCaseId) { softDeleteMutation.mutate(deletingCaseId); setShowDeleteDialog(false); setDeletingCaseId(null); } };
+  const handleHardDelete = () => { if (deletingCaseId) { hardDeleteMutation.mutate(deletingCaseId); setShowDeleteDialog(false); setDeletingCaseId(null); } };
+  const handleRestore = (id: string) => { restoreMutation.mutate(id); };
+  const handlePermanentDeleteFromTrash = (id: string) => { if (window.confirm('Are you sure you want to permanently delete this case? This cannot be undone.')) { hardDeleteMutation.mutate(id); } };
   const handleDownload = (courtCase: CourtCase) => { if (courtCase.pdfFileUrl) { window.open(courtCase.pdfFileUrl, '_blank'); } };
   const handleKnowMore = (courtCase: CourtCase) => { navigate(`/court-cases/${courtCase.id}`); };
   const handleCloseForm = () => { setShowForm(false); setEditingCase(null); };
@@ -350,9 +387,17 @@ export default function CourtCases() {
             </Select>
           </div>
           {isAdmin && (
-            <div className="flex items-end">
-              <Button onClick={() => setShowForm(true)} className="w-full bg-orange-600 hover:bg-orange-700">
+            <div className="flex items-end gap-2">
+              <Button onClick={() => setShowForm(true)} className="flex-1 bg-orange-600 hover:bg-orange-700">
                 <Plus className="h-4 w-4 mr-2" />Add New Case
+              </Button>
+              <Button onClick={() => setShowTrash(true)} variant="outline" className="relative">
+                <Trash className="h-4 w-4" />
+                {trashedCasesData && trashedCasesData.cases.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {trashedCasesData.cases.length}
+                  </span>
+                )}
               </Button>
             </div>
           )}
@@ -425,7 +470,7 @@ export default function CourtCases() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8 auto-rows-fr">
                   {courtCasesData.cases.map((courtCase) => (
-                    <CourtCaseCardNew key={courtCase.id} courtCase={courtCase} onEdit={isAdmin ? handleEdit : undefined} onDelete={isAdmin ? handleDelete : undefined} onDownload={handleDownload} onKnowMore={handleKnowMore} showActions={isAdmin} />
+                    <CourtCaseCardNew key={courtCase.id} courtCase={courtCase} onEdit={isAdmin ? handleEdit : undefined} onDelete={isAdmin ? handleDeleteClick : undefined} onDownload={handleDownload} onKnowMore={handleKnowMore} showActions={isAdmin} />
                   ))}
                 </div>
                 {courtCasesData.pagination.totalPages > 1 && (
@@ -450,6 +495,120 @@ export default function CourtCases() {
 
       <Dialog open={showLogin} onOpenChange={setShowLogin}>
         <DialogContent className="max-w-md"><LoginForm onSuccess={() => setShowLogin(false)} /></DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Delete Court Case
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-600 mb-4">How would you like to delete this court case?</p>
+            <div className="space-y-3">
+              <Button
+                onClick={handleSoftDelete}
+                variant="outline"
+                className="w-full justify-start h-auto py-3"
+                disabled={softDeleteMutation.isPending}
+              >
+                <div className="flex items-start gap-3">
+                  <Trash className="h-5 w-5 text-orange-500 mt-0.5" />
+                  <div className="text-left">
+                    <div className="font-medium">Move to Trash</div>
+                    <div className="text-sm text-gray-500">Case can be restored later from the Trash</div>
+                  </div>
+                </div>
+              </Button>
+              <Button
+                onClick={handleHardDelete}
+                variant="outline"
+                className="w-full justify-start h-auto py-3 border-red-200 hover:bg-red-50"
+                disabled={hardDeleteMutation.isPending}
+              >
+                <div className="flex items-start gap-3">
+                  <Trash2 className="h-5 w-5 text-red-500 mt-0.5" />
+                  <div className="text-left">
+                    <div className="font-medium text-red-600">Delete Permanently</div>
+                    <div className="text-sm text-gray-500">This action cannot be undone</div>
+                  </div>
+                </div>
+              </Button>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button variant="ghost" onClick={() => setShowDeleteDialog(false)}>Cancel</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Trash Dialog */}
+      <Dialog open={showTrash} onOpenChange={setShowTrash}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash className="h-5 w-5" />
+              Trash ({trashedCasesData?.cases.length || 0} items)
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {isLoadingTrash ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+              </div>
+            ) : trashedCasesData?.cases.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Trash className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Trash is empty</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {trashedCasesData?.cases.map((courtCase) => (
+                  <div key={courtCase.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-4">
+                      {courtCase.imageUrl ? (
+                        <img src={courtCase.imageUrl} alt={courtCase.caseTitle} className="w-16 h-16 object-cover rounded" />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                          <Scale className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-medium text-gray-900">{courtCase.caseTitle}</h4>
+                        <p className="text-sm text-gray-500">Deleted {courtCase.deletedAt ? format(new Date(courtCase.deletedAt), 'MMM dd, yyyy') : 'recently'}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRestore(courtCase.id)}
+                        disabled={restoreMutation.isPending}
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-1" />
+                        Restore
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePermanentDeleteFromTrash(courtCase.id)}
+                        disabled={hardDeleteMutation.isPending}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
       </Dialog>
     </div>
   );
