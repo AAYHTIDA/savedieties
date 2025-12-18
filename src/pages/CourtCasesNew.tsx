@@ -5,9 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Plus, Scale, LogOut, User, Home, ChevronRight, FileText, Edit, Trash2, Search, Trash, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
+import { Loader2, Plus, Scale, LogOut, User, Home, ChevronRight, FileText, Edit, Trash2, Search, Trash, RotateCcw, AlertTriangle, Users } from 'lucide-react';
 import { CourtCaseForm } from '@/components/court-cases/CourtCaseForm';
 import { LoginForm } from '@/components/auth/LoginForm';
+import { UserLoginForm } from '@/components/auth/UserLoginForm';
+import { UserManagement } from '@/components/auth/UserManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { firebaseApi } from '@/lib/firebase';
 import { CourtCase, CourtCaseFormData } from '@/types/courtCase';
@@ -134,6 +137,8 @@ export default function CourtCases() {
   const [showTrash, setShowTrash] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingCaseId, setDeletingCaseId] = useState<string | null>(null);
+  const [showUserLogin, setShowUserLogin] = useState(false);
+  const [showUserManagement, setShowUserManagement] = useState(false);
 
   const { data: courtCasesData, isLoading, error, refetch } = useQuery({
     queryKey: ['courtCases', page, limit, search, status, district, caseStudy],
@@ -260,10 +265,18 @@ export default function CourtCases() {
                     <span>{user.email}</span>
                     {isAdmin && <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs">Admin</span>}
                   </div>
+                  {isAdmin && (
+                    <Button variant="outline" onClick={() => setShowUserManagement(true)} size="sm">
+                      <Users className="h-4 w-4 mr-2" />Manage Users
+                    </Button>
+                  )}
                   <Button variant="outline" onClick={logout} size="sm"><LogOut className="h-4 w-4 mr-2" />Logout</Button>
                 </>
               ) : (
-                <Button onClick={() => setShowLogin(true)} size="sm" className="bg-orange-600 hover:bg-orange-700">Admin Login</Button>
+                <div className="flex items-center gap-2">
+                  <Button onClick={() => setShowUserLogin(true)} size="sm" variant="outline">User Login</Button>
+                  <Button onClick={() => setShowLogin(true)} size="sm" className="bg-orange-600 hover:bg-orange-700">Admin Login</Button>
+                </div>
               )}
             </div>
           </div>
@@ -468,10 +481,31 @@ export default function CourtCases() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8 auto-rows-fr">
-                  {courtCasesData.cases.map((courtCase) => (
-                    <CourtCaseCardNew key={courtCase.id} courtCase={courtCase} onEdit={isAdmin ? handleEdit : undefined} onDelete={isAdmin ? handleDeleteClick : undefined} onDownload={handleDownload} onKnowMore={handleKnowMore} showActions={isAdmin} />
-                  ))}
+                <div className="px-12 mb-8">
+                  <Carousel
+                    opts={{
+                      align: "start",
+                      loop: true,
+                    }}
+                    className="w-full"
+                  >
+                    <CarouselContent className="-ml-4">
+                      {courtCasesData.cases.map((courtCase) => (
+                        <CarouselItem key={courtCase.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                          <CourtCaseCardNew 
+                            courtCase={courtCase} 
+                            onEdit={isAdmin ? handleEdit : undefined} 
+                            onDelete={isAdmin ? handleDeleteClick : undefined} 
+                            onDownload={handleDownload} 
+                            onKnowMore={handleKnowMore} 
+                            showActions={isAdmin} 
+                          />
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="-left-4 bg-orange-600 text-white hover:bg-orange-700 hover:text-white border-none" />
+                    <CarouselNext className="-right-4 bg-orange-600 text-white hover:bg-orange-700 hover:text-white border-none" />
+                  </Carousel>
                 </div>
                 {courtCasesData.pagination.totalPages > 1 && (
                   <div className="flex justify-center gap-2">
@@ -495,6 +529,16 @@ export default function CourtCases() {
 
       <Dialog open={showLogin} onOpenChange={setShowLogin}>
         <DialogContent className="max-w-md"><LoginForm onSuccess={() => setShowLogin(false)} /></DialogContent>
+      </Dialog>
+
+      <Dialog open={showUserLogin} onOpenChange={setShowUserLogin}>
+        <DialogContent className="max-w-md"><UserLoginForm onSuccess={() => setShowUserLogin(false)} /></DialogContent>
+      </Dialog>
+
+      <Dialog open={showUserManagement} onOpenChange={setShowUserManagement}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <UserManagement onClose={() => setShowUserManagement(false)} />
+        </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}

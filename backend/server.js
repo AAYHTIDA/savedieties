@@ -4,6 +4,38 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 
+// Firebase Admin SDK for user management
+let admin;
+try {
+  admin = require('firebase-admin');
+  
+  let serviceAccount;
+  
+  // Try environment variable first (for production on Render)
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    console.log('✅ Using Firebase credentials from environment variable');
+  } else {
+    // Fall back to local file (for development)
+    const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
+    if (fs.existsSync(serviceAccountPath)) {
+      serviceAccount = require(serviceAccountPath);
+      console.log('✅ Using Firebase credentials from local file');
+    }
+  }
+  
+  if (serviceAccount) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log('✅ Firebase Admin SDK initialized');
+  } else {
+    console.warn('⚠️ No Firebase credentials found - user deletion will not work');
+  }
+} catch (error) {
+  console.warn('⚠️ Firebase Admin SDK not available:', error.message);
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -161,6 +193,50 @@ app.post('/api/court-cases/upload-multiple', upload.array('photos', 10), (req, r
     res.status(500).json({
       success: false,
       error: 'Internal server error during file upload'
+    });
+  }
+});
+
+// Delete user from Firebase Auth
+app.delete('/api/users/:uid', async (req, res) => {
+  try {
+    if (!admin) {
+      return res.status(500).json({
+        success: false,
+        error: 'Firebase Admin SDK not configured'
+      });
+    }
+
+    const { uid } = req.params;
+    
+    if (!uid) {
+      return res.status(400).json({
+        success: false,
+        error: 'User UID is required'
+      });
+    }
+
+    // Delete user from Firebase Auth
+    await admin.auth().deleteUser(uid);
+    
+    res.json({
+      success: true,
+      message: 'User deleted from Firebase Auth successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete user error:', error);
+    
+    if (error.code === 'auth/user-not-found') {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found in Firebase Auth'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to delete user'
     });
   }
 });

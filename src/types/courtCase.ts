@@ -44,3 +44,14 @@ export interface CourtCasesResponse {
     totalPages: number;
   };
 }
+
+// User management types
+export interface AppUser {
+  id: string;
+  name: string;
+  email: string;
+  isEnabled: boolean;
+  isAdmin: boolean;
+  createdAt: any;
+  updatedAt: any;
+}

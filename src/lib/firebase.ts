@@ -1,21 +1,23 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { 
-  getFirestore, 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
   orderBy,
   Timestamp,
 } from 'firebase/firestore';
 // Firebase Storage imports removed - using local backend instead
-import { CourtCase, CourtCaseFormData, CourtCasesResponse } from '@/types/courtCase';
+import { CourtCase, CourtCaseFormData, CourtCasesResponse, AppUser } from '@/types/courtCase';
+
+const USERS_COLLECTION = 'users';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -537,15 +539,152 @@ export const firebaseApi = {
   async verifyToken(): Promise<{ user: { uid: string; email: string; admin: boolean } | null }> {
     const user = auth.currentUser;
     if (user) {
+      // Check if user is admin (check users collection)
+      const userDoc = await this.getUserByEmail(user.email || '');
+      const isAdmin = userDoc?.isAdmin || false;
       return {
         user: {
           uid: user.uid,
           email: user.email || '',
-          admin: true, // For now, all authenticated users are admins
+          admin: isAdmin,
         },
       };
     }
     return { user: null };
+  },
+
+  // ==================== USER MANAGEMENT ====================
+
+  // Create a new user using a secondary Firebase app to avoid logging out the admin
+  async createUser(name: string, email: string, password: string): Promise<{ message: string; id: string }> {
+    // Import and create a secondary app for user creation
+    const { initializeApp, deleteApp } = await import('firebase/app');
+    const { getAuth, createUserWithEmailAndPassword: createUser } = await import('firebase/auth');
+    
+    // Create a secondary app instance
+    const secondaryApp = initializeApp({
+      apiKey: "AIzaSyCAbXN9unFCNvTO2HtxFdgZkTA9NMcjJUo",
+      authDomain: "diety-204b0.firebaseapp.com",
+      projectId: "diety-204b0",
+    }, 'secondary-' + Date.now());
+    
+    try {
+      const secondaryAuth = getAuth(secondaryApp);
+      
+      // Create user in Firebase Auth using secondary app
+      const userCredential = await createUser(secondaryAuth, email, password);
+      
+      // Add user to Firestore users collection
+      const usersRef = collection(db, USERS_COLLECTION);
+      const docRef = await addDoc(usersRef, {
+        uid: userCredential.user.uid,
+        name,
+        email,
+        isEnabled: true,
+        isAdmin: false,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      });
+
+      return { message: 'User created successfully', id: docRef.id };
+    } finally {
+      // Clean up the secondary app
+      await deleteApp(secondaryApp);
+    }
+  },
+
+  // Get all users
+  async getUsers(): Promise<AppUser[]> {
+    const usersRef = collection(db, USERS_COLLECTION);
+    const q = query(usersRef, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    
+    return snapshot.docs.map(docSnap => {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        name: data.name,
+        email: data.email,
+        isEnabled: data.isEnabled ?? true,
+        isAdmin: data.isAdmin ?? false,
+        createdAt: data.createdAt?.toDate?.() || data.createdAt,
+        updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
+      };
+    });
+  },
+
+  // Get user by email
+  async getUserByEmail(email: string): Promise<AppUser | null> {
+    const usersRef = collection(db, USERS_COLLECTION);
+    const q = query(usersRef, where('email', '==', email));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.empty) return null;
+    
+    const docSnap = snapshot.docs[0];
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      name: data.name,
+      email: data.email,
+      isEnabled: data.isEnabled ?? true,
+      isAdmin: data.isAdmin ?? false,
+      createdAt: data.createdAt?.toDate?.() || data.createdAt,
+      updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
+    };
+  },
+
+  // Toggle user enabled status
+  async toggleUserEnabled(userId: string, isEnabled: boolean): Promise<{ message: string }> {
+    const docRef = doc(db, USERS_COLLECTION, userId);
+    await updateDoc(docRef, {
+      isEnabled,
+      updatedAt: Timestamp.now(),
+    });
+    return { message: isEnabled ? 'User enabled' : 'User disabled' };
+  },
+
+  // Check if user is enabled (for login validation)
+  async isUserEnabled(email: string): Promise<boolean> {
+    const user = await this.getUserByEmail(email);
+    if (!user) return true; // If user not in collection, allow (might be admin)
+    return user.isEnabled;
+  },
+
+  // Delete user from Firestore and Firebase Auth
+  async deleteUser(userId: string): Promise<{ message: string }> {
+    // First get the user to find their Firebase Auth UID
+    const docRef = doc(db, USERS_COLLECTION, userId);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      throw new Error('User not found');
+    }
+    
+    const userData = docSnap.data();
+    const authUid = userData.uid;
+    
+    // Delete from Firebase Auth via backend
+    if (authUid) {
+      try {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+        const response = await fetch(`${backendUrl}/api/users/${authUid}`, {
+          method: 'DELETE',
+        });
+        
+        const result = await response.json();
+        if (!result.success) {
+          console.warn('Failed to delete from Firebase Auth:', result.error);
+        }
+      } catch (error) {
+        console.warn('Error deleting from Firebase Auth:', error);
+        // Continue to delete from Firestore even if Auth deletion fails
+      }
+    }
+    
+    // Delete from Firestore
+    await deleteDoc(docRef);
+    return { message: 'User deleted successfully' };
   },
 };
 
