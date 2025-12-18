@@ -373,9 +373,9 @@ export default function CourtCases() {
               <SelectTrigger><SelectValue placeholder="All States" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All States</SelectItem>
-                <SelectItem value="heritage">Completed</SelectItem>
+                {/* <SelectItem value="heritage">Completed</SelectItem>
                 <SelectItem value="land">In Court</SelectItem>
-                <SelectItem value="religious">In Progress</SelectItem>
+                <SelectItem value="religious">In Progress</SelectItem> */}
               </SelectContent>
             </Select>
           </div>
