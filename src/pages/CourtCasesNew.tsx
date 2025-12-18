@@ -298,27 +298,7 @@ export default function CourtCases() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex justify-between items-center">
-            <h1 className="text-4xl font-bold text-orange-600 mb-2">Court Cases</h1>
-            {isAdmin && (
-              <Button 
-                onClick={async () => {
-                  try {
-                    await firebaseApi.updateDismissedToInCourt();
-                    toast.success('Updated all "Dismissed" cases to "In Court"');
-                    refetch();
-                  } catch (error) {
-                    toast.error('Failed to update cases');
-                  }
-                }}
-                variant="outline"
-                size="sm"
-                className="text-xs"
-              >
-                Update Status
-              </Button>
-            )}
-          </div>
+          <h1 className="text-4xl font-bold text-orange-600 mb-2">Court Cases</h1>
         </div>
 
         {/* Search Bar and Clear Filters */}
