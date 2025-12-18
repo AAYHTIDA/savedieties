@@ -121,7 +121,7 @@ const CourtCaseCardNew: React.FC<{
 };
 
 export default function CourtCases() {
-  const { user, isAdmin, logout, loading: authLoading } = useAuth();
+  const { user, isAdmin, isUser, logout, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -399,19 +399,21 @@ export default function CourtCases() {
               </SelectContent>
             </Select>
           </div>
-          {isAdmin && (
+          {(isAdmin || isUser) && (
             <div className="flex items-end gap-2">
               <Button onClick={() => setShowForm(true)} className="flex-1 bg-orange-600 hover:bg-orange-700">
                 <Plus className="h-4 w-4 mr-2" />Add New Case
               </Button>
-              <Button onClick={() => setShowTrash(true)} variant="outline" className="relative">
-                <Trash className="h-4 w-4" />
-                {trashedCasesData && trashedCasesData.cases.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {trashedCasesData.cases.length}
-                  </span>
-                )}
-              </Button>
+              {isAdmin && (
+                <Button onClick={() => setShowTrash(true)} variant="outline" className="relative">
+                  <Trash className="h-4 w-4" />
+                  {trashedCasesData && trashedCasesData.cases.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {trashedCasesData.cases.length}
+                    </span>
+                  )}
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -471,7 +473,7 @@ export default function CourtCases() {
                       Clear Filters
                     </Button>
                   )}
-                  {isAdmin && (
+                  {(isAdmin || isUser) && (
                     <Button onClick={() => setShowForm(true)} className="bg-orange-600 hover:bg-orange-700">
                       <Plus className="h-4 w-4 mr-2" />
                       {(search || status !== 'all' || district !== 'all' || caseStudy !== 'all') ? 'Add New Case' : 'Add First Case'}
@@ -494,11 +496,11 @@ export default function CourtCases() {
                         <CarouselItem key={courtCase.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
                           <CourtCaseCardNew 
                             courtCase={courtCase} 
-                            onEdit={isAdmin ? handleEdit : undefined} 
+                            onEdit={(isAdmin || isUser) ? handleEdit : undefined} 
                             onDelete={isAdmin ? handleDeleteClick : undefined} 
                             onDownload={handleDownload} 
                             onKnowMore={handleKnowMore} 
-                            showActions={isAdmin} 
+                            showActions={isAdmin || isUser} 
                           />
                         </CarouselItem>
                       ))}
