@@ -176,6 +176,8 @@ const docToCourtCase = (docSnap: any): CourtCase => {
     imageUrl: data.imageUrl,
     imageName: data.imageName,
     images: data.images,
+    // Temple location for map
+    templeLocation: data.templeLocation,
     isDeleted: data.isDeleted || false,
     deletedAt: data.deletedAt?.toDate?.() || data.deletedAt,
     createdAt: data.createdAt?.toDate?.() || data.createdAt,

@@ -18,6 +18,7 @@ const courtCaseSchema = z.object({
   description: z.string().optional(),
   dateFiled: z.string().min(1, 'Date filed is required'),
   status: z.string().min(1, 'Status is required'),
+  district: z.string().optional(),
 });
 
 interface CourtCaseFormProps {

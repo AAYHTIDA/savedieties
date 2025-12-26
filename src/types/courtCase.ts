@@ -15,6 +15,13 @@ export interface CourtCase {
   pdfFileName?: string;
   imageUrl?: string;
   imageName?: string;
+  // Temple location for map
+  templeLocation?: {
+    lat: number;
+    lng: number;
+    name?: string;
+    address?: string;
+  };
   // Multiple images support
   images?: Array<{
     url: string;

@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Plus, Scale, LogOut, User, Home, ChevronRight, FileText, Edit, Trash2, Search, Trash, RotateCcw, AlertTriangle, Users } from 'lucide-react';
 import { CourtCaseForm } from '@/components/court-cases/CourtCaseForm';
+import { CourtCasesMap } from '@/components/court-cases/CourtCasesMap';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { UserLoginForm } from '@/components/auth/UserLoginForm';
 import { UserManagement } from '@/components/auth/UserManagement';
@@ -396,6 +397,17 @@ export default function CourtCases() {
             </div>
           )}
         </div>
+
+        {/* Google Maps Section */}
+        {courtCasesData && courtCasesData.cases.length > 0 && (
+          <div className="mb-8">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Case Locations Map</label>
+            <CourtCasesMap 
+              cases={courtCasesData.cases} 
+              onCaseClick={(courtCase) => handleKnowMore(courtCase)}
+            />
+          </div>
+        )}
 
         {error && (
           <Alert variant="destructive" className="mb-6">
