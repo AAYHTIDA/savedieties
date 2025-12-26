@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 import { Loader2, Plus, Scale, LogOut, User, Home, ChevronRight, FileText, Edit, Trash2, Search, Trash, RotateCcw, AlertTriangle, Users } from 'lucide-react';
 import { CourtCaseForm } from '@/components/court-cases/CourtCaseForm';
 import { LoginForm } from '@/components/auth/LoginForm';
@@ -463,31 +462,18 @@ export default function CourtCases() {
               </div>
             ) : (
               <>
-                <div className="px-12 mb-8">
-                  <Carousel
-                    opts={{
-                      align: "start",
-                      loop: true,
-                    }}
-                    className="w-full"
-                  >
-                    <CarouselContent className="-ml-4">
-                      {courtCasesData.cases.map((courtCase) => (
-                        <CarouselItem key={courtCase.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                          <CourtCaseCardNew 
-                            courtCase={courtCase} 
-                            onEdit={(isAdmin || isUser) ? handleEdit : undefined} 
-                            onDelete={isAdmin ? handleDeleteClick : undefined} 
-                            onDownload={handleDownload} 
-                            onKnowMore={handleKnowMore} 
-                            showActions={isAdmin || isUser} 
-                          />
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="-left-4 bg-orange-600 text-white hover:bg-orange-700 hover:text-white border-none" />
-                    <CarouselNext className="-right-4 bg-orange-600 text-white hover:bg-orange-700 hover:text-white border-none" />
-                  </Carousel>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8 auto-rows-fr">
+                  {courtCasesData.cases.map((courtCase) => (
+                    <CourtCaseCardNew 
+                      key={courtCase.id}
+                      courtCase={courtCase} 
+                      onEdit={(isAdmin || isUser) ? handleEdit : undefined} 
+                      onDelete={isAdmin ? handleDeleteClick : undefined} 
+                      onDownload={handleDownload} 
+                      onKnowMore={handleKnowMore} 
+                      showActions={isAdmin || isUser} 
+                    />
+                  ))}
                 </div>
                 {courtCasesData.pagination.totalPages > 1 && (
                   <div className="flex justify-center gap-2">
