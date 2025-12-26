@@ -14,6 +14,7 @@ import { CourtCase, CourtCaseFormData } from '@/types/courtCase';
 
 const courtCaseSchema = z.object({
   caseTitle: z.string().min(1, 'Case title is required'),
+  caseNumber: z.string().min(1, 'Case number is required'),
   description: z.string().optional(),
   dateFiled: z.string().min(1, 'Date filed is required'),
   status: z.string().min(1, 'Status is required'),
@@ -51,6 +52,7 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
     resolver: zodResolver(courtCaseSchema),
     defaultValues: {
       caseTitle: '',
+      caseNumber: '',
       description: '',
       dateFiled: '',
       status: 'Active',
@@ -61,6 +63,7 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
     if (courtCase) {
       reset({
         caseTitle: courtCase.caseTitle,
+        caseNumber: courtCase.caseNumber,
         description: courtCase.description || '',
         dateFiled: courtCase.dateFiled,
         status: courtCase.status,
@@ -182,6 +185,19 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="caseNumber">Case Number *</Label>
+              <Input
+                id="caseNumber"
+                placeholder="e.g., CWP-2024-001, PIL-2024-002"
+                {...register('caseNumber')}
+                disabled={isLoading}
+              />
+              {errors.caseNumber && (
+                <p className="text-sm text-destructive">{errors.caseNumber.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="dateFiled">Date Filed *</Label>
               <Input
                 id="dateFiled"
@@ -194,7 +210,7 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
               )}
             </div>
 
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select
                 value={watch('status')}

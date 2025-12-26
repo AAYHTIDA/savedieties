@@ -24,6 +24,7 @@ const CourtCaseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const { data: courtCase, isLoading, error } = useQuery({
     queryKey: ['courtCase', id],
@@ -80,6 +81,19 @@ const CourtCaseDetail: React.FC = () => {
     
     return images;
   }, [courtCase]);
+
+  // Auto-cycle images every 5 seconds
+  React.useEffect(() => {
+    if (allImages.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prevIndex) => 
+          prevIndex < allImages.length - 1 ? prevIndex + 1 : 0
+        );
+      }, 3000);
+
+      return () => clearInterval(interval);
+    }
+  }, [allImages.length]);
 
   const openImageModal = (index: number) => {
     setSelectedImageIndex(index);
@@ -159,6 +173,75 @@ const CourtCaseDetail: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Images Carousel - Above everything */}
+        {allImages.length > 0 && (
+          <div className="mb-8">
+            <Card>
+              <CardContent className="p-0">
+                <div className="relative">
+                  {/* Main Image Display */}
+                  <div className="relative h-[500px] bg-gray-100 rounded-lg overflow-hidden">
+                    <img
+                      src={allImages[currentImageIndex].url}
+                      alt={allImages[currentImageIndex].filename}
+                      className="w-full h-full object-cover cursor-pointer transition-all duration-500"
+                      onClick={() => openImageModal(currentImageIndex)}
+                    />
+                    <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded">
+                      <p className="text-sm font-medium">{allImages[currentImageIndex].filename}</p>
+                    </div>
+                    {allImages.length > 1 && (
+                      <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded">
+                        <p className="text-sm">{currentImageIndex + 1} of {allImages.length}</p>
+                      </div>
+                    )}
+                    
+                    {/* Navigation arrows */}
+                    {allImages.length > 1 && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setCurrentImageIndex(currentImageIndex > 0 ? currentImageIndex - 1 : allImages.length - 1)}
+                          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white hover:bg-opacity-70"
+                        >
+                          <ChevronLeft className="h-6 w-6" />
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setCurrentImageIndex(currentImageIndex < allImages.length - 1 ? currentImageIndex + 1 : 0)}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white hover:bg-opacity-70"
+                        >
+                          <ChevronRight className="h-6 w-6" />
+                        </Button>
+                      </>
+                    )}
+                    
+                    {/* Auto-cycle indicator dots */}
+                    {allImages.length > 1 && (
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                        {allImages.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              index === currentImageIndex 
+                                ? 'bg-white' 
+                                : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Main Details */}
           <div className="lg:col-span-2 space-y-6">
@@ -275,54 +358,8 @@ const CourtCaseDetail: React.FC = () => {
             </Card>
           </div>
 
-          {/* Right Column - Images and Documents */}
+          {/* Right Column - Documents */}
           <div className="space-y-6">
-            {/* Images Gallery */}
-            {allImages.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Images ({allImages.length})</CardTitle>
-                  <CardDescription>
-                    Click on any image to view in full size
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 gap-4">
-                    {allImages.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={image.url}
-                          alt={image.filename}
-                          className="w-full h-48 object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
-                          onClick={() => openImageModal(index)}
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                            <p className="text-white text-sm font-medium bg-black bg-opacity-50 px-2 py-1 rounded">
-                              Click to enlarge
-                            </p>
-                          </div>
-                        </div>
-                        {image.isMain && (
-                          <Badge className="absolute top-2 left-2 bg-orange-600 text-white">
-                            Main Image
-                          </Badge>
-                        )}
-                        <div className="mt-2">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {image.filename}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {format(new Date(image.uploadedAt), 'MMM dd, yyyy')}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Documents */}
             {courtCase.pdfFileUrl && (
               <Card>

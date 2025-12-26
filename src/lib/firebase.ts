@@ -279,8 +279,8 @@ export const firebaseApi = {
   async createCourtCase(data: CourtCaseFormData, imageFile?: File, additionalImages?: File[]): Promise<{ message: string; id: string }> {
     const casesRef = collection(db, CASES_COLLECTION);
     
-    // Generate a unique case number
-    const caseNumber = `CASE-${Date.now()}`;
+    // Use the case number from form data
+    const caseNumber = data.caseNumber;
 
     let imageUrl: string | undefined;
     let imageName: string | undefined;
