@@ -10,7 +10,6 @@ const ContactSection = () => {
     subject: '',
     message: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -28,39 +27,28 @@ const ContactSection = () => {
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      // Create mailto link with form data
-      const subject = encodeURIComponent(formData.subject || 'Contact Form Submission');
-      const body = encodeURIComponent(
-        `Name: ${formData.name}\n` +
-        `Email: ${formData.email}\n` +
-        `Subject: ${formData.subject}\n\n` +
-        `Message:\n${formData.message}`
-      );
-      
-      const mailtoLink = `mailto:adithyaaskumar06@gmail.com?subject=${subject}&body=${body}`;
-      
-      // Open default email client
-      window.location.href = mailtoLink;
-      
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
-      });
-      
-      toast.success('Email client opened! Please send the email from your email application.');
-      
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Failed to open email client. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Create Gmail compose URL with form data
+    const to = 'contact@savedeities.org';
+    const subject = encodeURIComponent(formData.subject || 'Contact Form Submission');
+    const body = encodeURIComponent(
+      `Name: ${formData.name}\n` +
+      `Email: ${formData.email}\n\n` +
+      `Message:\n${formData.message}`
+    );
+    
+    // Open Gmail compose window as popup
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`;
+    window.open(gmailUrl, 'gmail_compose', 'width=600,height=600,scrollbars=yes,resizable=yes');
+    
+    // Reset form
+    setFormData({
+      name: '',
+      email: '',
+      subject: '',
+      message: ''
+    });
+    
+    toast.success('Gmail opened! Please send the email.');
   };
   return (
     <section className="bg-dark-section py-20" id="contact">
@@ -150,9 +138,8 @@ const ContactSection = () => {
                 variant="saffron" 
                 size="lg" 
                 className="w-full md:w-auto"
-                disabled={isSubmitting}
               >
-                {isSubmitting ? 'Opening Email...' : 'Write to us'}
+                Write to us
               </Button>
             </form>
           </div>
