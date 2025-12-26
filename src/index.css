@@ -247,3 +247,14 @@
     opacity: 0;
   }
 }
+
+
+/* Fix Leaflet map z-index to not overlap dialogs */
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+.leaflet-pane,
+.leaflet-control {
+  z-index: 0 !important;
+}

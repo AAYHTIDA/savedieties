@@ -26,11 +26,11 @@ export const CourtCasesMap: React.FC<CourtCasesMapProps> = ({ cases, onCaseClick
   const keralaCenter: [number, number] = [10.8505, 76.2711];
 
   return (
-    <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+    <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm relative z-0">
       <MapContainer
         center={keralaCenter}
         zoom={7}
-        style={{ height: '350px', width: '100%' }}
+        style={{ height: '350px', width: '100%', zIndex: 0 }}
         scrollWheelZoom={true}
       >
         <TileLayer
