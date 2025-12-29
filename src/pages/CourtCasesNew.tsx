@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
-// Court Case Card Component matching the exact reference design
+// Court Case Card Component with image carousel
 const CourtCaseCardNew: React.FC<{
   courtCase: CourtCase;
   onEdit?: (courtCase: CourtCase) => void;
@@ -27,6 +27,33 @@ const CourtCaseCardNew: React.FC<{
   onKnowMore?: (courtCase: CourtCase) => void;
   showActions?: boolean;
 }> = ({ courtCase, onEdit, onDelete, onDownload, onKnowMore, showActions }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Combine main image and additional images
+  const allImages = React.useMemo(() => {
+    const images: string[] = [];
+    if (courtCase.imageUrl) {
+      images.push(courtCase.imageUrl);
+    }
+    if (courtCase.images && courtCase.images.length > 0) {
+      images.push(...courtCase.images.map(img => img.url));
+    }
+    return images;
+  }, [courtCase.imageUrl, courtCase.images]);
+
+  const hasMultipleImages = allImages.length > 1;
+
+  // Auto-scroll carousel every 3 seconds
+  useEffect(() => {
+    if (!hasMultipleImages) return;
+    
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [hasMultipleImages, allImages.length]);
+
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'MMM dd, yyyy');
@@ -36,13 +63,12 @@ const CourtCaseCardNew: React.FC<{
   };
 
   const getStatusText = (status: string) => {
-    // Return the actual status instead of mapping everything to "In Progress"
     return status;
   };
 
   return (
     <div className="bg-orange-50 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 max-w-sm mx-auto h-full flex flex-col">
-      {/* Image Section */}
+      {/* Image Section with Carousel */}
       <div className="relative h-64 bg-gray-100 flex-shrink-0">
         {/* Status Badge */}
         <div className="absolute top-4 right-4 z-10">
@@ -51,17 +77,40 @@ const CourtCaseCardNew: React.FC<{
           </span>
         </div>
 
-        {courtCase.imageUrl ? (
-          /* Display uploaded image */
-          <img
-            src={courtCase.imageUrl}
-            alt={courtCase.caseTitle}
-            className="w-full h-full object-cover"
-          />
+        {allImages.length > 0 ? (
+          <>
+            {/* Current Image */}
+            <img
+              src={allImages[currentImageIndex]}
+              alt={courtCase.caseTitle}
+              className="w-full h-full object-cover"
+            />
+            
+            {/* Carousel Indicators - Only show if multiple images */}
+            {hasMultipleImages && (
+              <>
+                {/* Dots Indicator */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                  {allImages.map((_, index) => (
+                    <span
+                      key={index}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+                
+                {/* Image Counter */}
+                <div className="absolute bottom-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded z-10">
+                  {currentImageIndex + 1}/{allImages.length}
+                </div>
+              </>
+            )}
+          </>
         ) : (
           /* Fallback with Om Pattern */
           <div className="relative bg-red-600 h-full flex items-center justify-center">
-            {/* Om Symbol Pattern */}
             <div className="absolute inset-0 opacity-20">
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                 <div className="text-8xl text-red-800 font-bold select-none">ॐ</div>
@@ -71,7 +120,6 @@ const CourtCaseCardNew: React.FC<{
               <div className="absolute bottom-6 left-6 text-3xl text-red-800 font-bold select-none">ॐ</div>
               <div className="absolute bottom-6 right-6 text-3xl text-red-800 font-bold select-none">ॐ</div>
             </div>
-
             <div className="relative z-10 text-center">
               <div className="text-red-300 text-lg font-medium">Image Not Available</div>
             </div>
