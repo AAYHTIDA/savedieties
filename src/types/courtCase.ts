@@ -28,13 +28,6 @@ export interface CourtCase {
     filename: string;
     uploadedAt: string;
   }>;
-  // Temple location support
-  templeLocation?: {
-    name: string;
-    address: string;
-    lat: number;
-    lng: number;
-  };
   // Soft delete support
   isDeleted?: boolean;
   deletedAt?: any;
@@ -44,13 +37,12 @@ export interface CourtCase {
 
 export interface CourtCaseFormData {
   caseTitle: string;
-  caseNumber: string;
   description?: string;
   dateFiled: string;
   status: string;
   templeLocation?: {
-    name: string;
-    address: string;
+    name?: string;
+    address?: string;
     lat: number;
     lng: number;
   };

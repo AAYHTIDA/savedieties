@@ -279,8 +279,8 @@ export const firebaseApi = {
   async createCourtCase(data: CourtCaseFormData, imageFile?: File, additionalImages?: File[]): Promise<{ message: string; id: string }> {
     const casesRef = collection(db, CASES_COLLECTION);
     
-    // Use the case number from form data
-    const caseNumber = data.caseNumber;
+    // Generate a unique case number
+    const caseNumber = `CASE-${Date.now()}`;
 
     let imageUrl: string | undefined;
     let imageName: string | undefined;
@@ -343,16 +343,29 @@ export const firebaseApi = {
       }
     }
 
-    // Create the document with image info - exclude undefined fields for Firestore
+    // Create the document - exclude undefined fields for Firestore
     const docData: any = {
-      ...data,
+      caseTitle: data.caseTitle,
+      description: data.description || '',
+      dateFiled: data.dateFiled,
+      status: data.status,
       caseNumber,
-      priority: 'Medium', // Default priority
+      priority: 'Medium',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
     
-    // Only add image fields if they have values (Firestore doesn't accept undefined)
+    // Add templeLocation if provided
+    if (data.templeLocation && data.templeLocation.lat && data.templeLocation.lng) {
+      docData.templeLocation = {
+        name: data.templeLocation.name || '',
+        address: data.templeLocation.address || '',
+        lat: data.templeLocation.lat,
+        lng: data.templeLocation.lng,
+      };
+    }
+    
+    // Only add image fields if they have values
     if (imageUrl) {
       docData.imageUrl = imageUrl;
       docData.imageName = imageName;
@@ -379,9 +392,22 @@ export const firebaseApi = {
     const existingData = docSnap.data();
 
     const updateData: any = {
-      ...data,
+      caseTitle: data.caseTitle,
+      description: data.description || '',
+      dateFiled: data.dateFiled,
+      status: data.status,
       updatedAt: Timestamp.now(),
     };
+
+    // Add templeLocation if provided
+    if (data.templeLocation && data.templeLocation.lat && data.templeLocation.lng) {
+      updateData.templeLocation = {
+        name: data.templeLocation.name || '',
+        address: data.templeLocation.address || '',
+        lat: data.templeLocation.lat,
+        lng: data.templeLocation.lng,
+      };
+    }
 
     // Upload new image to backend if provided
     if (imageFile) {

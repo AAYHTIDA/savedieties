@@ -9,16 +9,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Upload, X } from 'lucide-react';
+import { Loader2, Upload, X, MapPin } from 'lucide-react';
 import { CourtCase, CourtCaseFormData } from '@/types/courtCase';
 
 const courtCaseSchema = z.object({
   caseTitle: z.string().min(1, 'Case title is required'),
-  caseNumber: z.string().min(1, 'Case number is required'),
   description: z.string().optional(),
   dateFiled: z.string().min(1, 'Date filed is required'),
   status: z.string().min(1, 'Status is required'),
-  district: z.string().optional(),
+  locationName: z.string().optional(),
+  locationAddress: z.string().optional(),
+  latitude: z.string().optional(),
+  longitude: z.string().optional(),
 });
 
 interface CourtCaseFormProps {
@@ -48,14 +50,17 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
     setValue,
     watch,
     reset,
-  } = useForm<CourtCaseFormData>({
+  } = useForm({
     resolver: zodResolver(courtCaseSchema),
     defaultValues: {
       caseTitle: '',
-      caseNumber: '',
       description: '',
       dateFiled: '',
       status: 'Active',
+      locationName: '',
+      locationAddress: '',
+      latitude: '',
+      longitude: '',
     },
   });
 
@@ -63,18 +68,40 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
     if (courtCase) {
       reset({
         caseTitle: courtCase.caseTitle,
-        caseNumber: courtCase.caseNumber,
         description: courtCase.description || '',
         dateFiled: courtCase.dateFiled,
         status: courtCase.status,
+        locationName: courtCase.templeLocation?.name || '',
+        locationAddress: courtCase.templeLocation?.address || '',
+        latitude: courtCase.templeLocation?.lat?.toString() || '',
+        longitude: courtCase.templeLocation?.lng?.toString() || '',
       });
     }
   }, [courtCase, reset]);
 
-  const handleFormSubmit = async (data: CourtCaseFormData) => {
+  const handleFormSubmit = async (data: any) => {
     try {
       setError('');
-      await onSubmit(data, selectedImageFile || undefined, additionalImages.length > 0 ? additionalImages : undefined);
+      
+      // Build the form data with templeLocation
+      const formData: CourtCaseFormData = {
+        caseTitle: data.caseTitle,
+        description: data.description,
+        dateFiled: data.dateFiled,
+        status: data.status,
+      };
+
+      // Add templeLocation if lat and lng are provided
+      if (data.latitude && data.longitude) {
+        formData.templeLocation = {
+          name: data.locationName || '',
+          address: data.locationAddress || '',
+          lat: parseFloat(data.latitude),
+          lng: parseFloat(data.longitude),
+        };
+      }
+
+      await onSubmit(formData, selectedImageFile || undefined, additionalImages.length > 0 ? additionalImages : undefined);
     } catch (error: any) {
       setError(error.message || 'Failed to save court case');
     }
@@ -180,20 +207,7 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
                 disabled={isLoading}
               />
               {errors.caseTitle && (
-                <p className="text-sm text-destructive">{errors.caseTitle.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="caseNumber">Case Number *</Label>
-              <Input
-                id="caseNumber"
-                placeholder="e.g., CWP-2024-001, PIL-2024-002"
-                {...register('caseNumber')}
-                disabled={isLoading}
-              />
-              {errors.caseNumber && (
-                <p className="text-sm text-destructive">{errors.caseNumber.message}</p>
+                <p className="text-sm text-destructive">{errors.caseTitle.message?.toString()}</p>
               )}
             </div>
 
@@ -206,11 +220,11 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
                 disabled={isLoading}
               />
               {errors.dateFiled && (
-                <p className="text-sm text-destructive">{errors.dateFiled.message}</p>
+                <p className="text-sm text-destructive">{errors.dateFiled.message?.toString()}</p>
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="status">Status *</Label>
               <Select
                 value={watch('status')}
@@ -230,9 +244,69 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
                 </SelectContent>
               </Select>
               {errors.status && (
-                <p className="text-sm text-destructive">{errors.status.message}</p>
+                <p className="text-sm text-destructive">{errors.status.message?.toString()}</p>
               )}
             </div>
+          </div>
+
+          {/* Location Section */}
+          <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-orange-600" />
+              <Label className="text-base font-semibold">Temple/Case Location (for map)</Label>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="locationName">Location Name</Label>
+                <Input
+                  id="locationName"
+                  placeholder="e.g., Kedarnath Temple"
+                  {...register('locationName')}
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="locationAddress">Address</Label>
+                <Input
+                  id="locationAddress"
+                  placeholder="e.g., Kedarnath, Uttarakhand"
+                  {...register('locationAddress')}
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="latitude">Latitude *</Label>
+                <Input
+                  id="latitude"
+                  type="number"
+                  step="any"
+                  placeholder="e.g., 30.7346"
+                  {...register('latitude')}
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-gray-500">Required for map pin</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="longitude">Longitude *</Label>
+                <Input
+                  id="longitude"
+                  type="number"
+                  step="any"
+                  placeholder="e.g., 79.0669"
+                  {...register('longitude')}
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-gray-500">Required for map pin</p>
+              </div>
+            </div>
+            
+            <p className="text-xs text-gray-500">
+              Tip: You can find coordinates by right-clicking on Google Maps and selecting the coordinates.
+            </p>
           </div>
 
           <div className="space-y-2">
