@@ -10,9 +10,9 @@ const crypto = require('crypto');
 let admin;
 try {
   admin = require('firebase-admin');
-  
+
   let serviceAccount;
-  
+
   // Try environment variable first (for production on Render)
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -25,7 +25,7 @@ try {
       console.log('✅ Using Firebase credentials from local file');
     }
   }
-  
+
   if (serviceAccount) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
@@ -65,7 +65,7 @@ app.use(cors({
     'http://localhost:8080',
     'http://localhost:8081',
     'https://savediety.netlify.app',
-    'https://savedeitiesma.netlify.app',
+    'https://savedieties3.netlify.app/',
     'https://savedieties1.onrender.com',
     process.env.FRONTEND_URL
   ].filter(Boolean),
@@ -103,7 +103,7 @@ const storage = multer.diskStorage({
 // File filter to only allow images
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  
+
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -232,7 +232,7 @@ app.delete('/api/users/:uid', async (req, res) => {
     }
 
     const { uid } = req.params;
-    
+
     if (!uid) {
       return res.status(400).json({
         success: false,
@@ -242,7 +242,7 @@ app.delete('/api/users/:uid', async (req, res) => {
 
     // Delete user from Firebase Auth
     await admin.auth().deleteUser(uid);
-    
+
     res.json({
       success: true,
       message: 'User deleted from Firebase Auth successfully'
@@ -250,14 +250,14 @@ app.delete('/api/users/:uid', async (req, res) => {
 
   } catch (error) {
     console.error('Delete user error:', error);
-    
+
     if (error.code === 'auth/user-not-found') {
       return res.status(404).json({
         success: false,
         error: 'User not found in Firebase Auth'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to delete user'
@@ -406,7 +406,7 @@ app.use((error, req, res, next) => {
       });
     }
   }
-  
+
   if (error.message.includes('Invalid file type')) {
     return res.status(400).json({
       success: false,
