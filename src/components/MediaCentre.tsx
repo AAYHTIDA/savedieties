@@ -1,38 +1,40 @@
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useTranslation";
 import news1 from "@/assets/news-1.jpg";
 import news2 from "@/assets/news-2.jpg";
 import news3 from "@/assets/news-3.jpg";
 
-const newsItems = [
-  {
-    image: news1,
-    date: "December 28, 2020",
-    title: "Malabar Devaswom Contribution ...",
-    excerpt:
-      "Malabar devaswom board Commissioner has issued a circular directing the temples under the Board to contribute fixed amounts to the 'Chief Minister's Disaster Relief Fund thereby forcefully making the temples to ...",
-  },
-  {
-    image: news2,
-    date: "December 28, 2020",
-    title: "Chirakkadavu Temple Festival",
-    excerpt:
-      "The Deputy Superintendent of Police interfered with the conduct of Chirakkadavu Temple Festival in the name of maintenance of law and order as it was done in the last year creating trouble for the smooth conduct of ...",
-  },
-  {
-    image: news3,
-    date: "December 28, 2020",
-    title: "Guruvayoor Devaswom Contributi...",
-    excerpt:
-      "Guruvayoor Devaswom board has decided to contribute Rs.10 Crores to the 'Chief Minister's Disaster Relief Fund and contributed the above amount in total violation of the provisions of the Guruvayoor Devaswom Act...",
-  },
-];
-
 const MediaCentre = () => {
+  const { t } = useTranslation();
+
+  const newsItems = [
+    {
+      image: news1,
+      date: "December 28, 2020",
+      title: "Malabar Devaswom Contribution ...",
+      excerpt:
+        "Malabar devaswom board Commissioner has issued a circular directing the temples under the Board to contribute fixed amounts to the 'Chief Minister's Disaster Relief Fund thereby forcefully making the temples to ...",
+    },
+    {
+      image: news2,
+      date: "December 28, 2020",
+      title: "Chirakkadavu Temple Festival",
+      excerpt:
+        "The Deputy Superintendent of Police interfered with the conduct of Chirakkadavu Temple Festival in the name of maintenance of law and order as it was done in the last year creating trouble for the smooth conduct of ...",
+    },
+    {
+      image: news3,
+      date: "December 28, 2020",
+      title: "Guruvayoor Devaswom Contributi...",
+      excerpt:
+        "Guruvayoor Devaswom board has decided to contribute Rs.10 Crores to the 'Chief Minister's Disaster Relief Fund and contributed the above amount in total violation of the provisions of the Guruvayoor Devaswom Act...",
+    },
+  ];
   return (
     <section className="bg-dark-bg py-20" id="media">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-display text-primary-foreground text-center mb-4">
-          Media Centre
+          {t("media.title")}
         </h2>
         <div className="w-24 h-1 bg-saffron mx-auto mb-12" />
 
@@ -59,7 +61,7 @@ const MediaCentre = () => {
                   href="#"
                   className="text-saffron text-sm font-medium hover:underline"
                 >
-                  Know More
+                  {t("media.knowMore")}
                 </a>
               </div>
             </article>
@@ -68,7 +70,7 @@ const MediaCentre = () => {
 
         <div className="text-center">
           <Button variant="saffronOutline" size="lg">
-            View All
+            {t("media.viewAll")}
           </Button>
         </div>
       </div>

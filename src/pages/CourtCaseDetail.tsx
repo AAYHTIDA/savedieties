@@ -15,7 +15,8 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Heart
 } from 'lucide-react';
 import { firebaseApi } from '@/lib/firebase';
 import { format } from 'date-fns';
@@ -357,6 +358,28 @@ const CourtCaseDetail: React.FC = () => {
 
           {/* Right Column - Documents */}
           <div className="space-y-6">
+            {/* Contribute Card */}
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+              <CardHeader>
+                <CardTitle className="flex items-center text-orange-900">
+                  <Heart className="mr-2 h-5 w-5" />
+                  Support This Case
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-orange-800 mb-4">
+                  Your contribution helps cover legal fees and court costs to protect our temples and heritage.
+                </p>
+                <Button
+                  onClick={() => navigate(`/contribute/${courtCase.id}`)}
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                >
+                  <Heart className="mr-2 h-4 w-4" />
+                  Contribute Now
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Documents */}
             {courtCase.pdfFileUrl && (
               <Card>

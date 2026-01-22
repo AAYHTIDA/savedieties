@@ -1,29 +1,31 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 import heroTemple1 from "@/assets/hero-temple-1.jpg";
 import heroTemple2 from "@/assets/hero-temple-2.jpg";
 import heroTemple3 from "@/assets/hero-temple-3.jpg";
 
-const slides = [
-  {
-    image: heroTemple1,
-    title: "Saketham Hindu Litigants Trust",
-    subtitle: "We ensure that all the properties that belongs to the Deities are not mismanaged, encroached or misused.",
-  },
-  {
-    image: heroTemple2,
-    title: "Saketham Hindu Litigants Trust",
-    subtitle: "We ensure that all the properties that belongs to the Deities are not mismanaged, encroached or misused.",
-  },
-  {
-    image: heroTemple3,
-    title: "Saketham Hindu Litigants Trust",
-    subtitle: "We ensure that all the properties that belongs to the Deities are not mismanaged, encroached or misused.",
-  },
-];
-
 const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { t } = useTranslation();
+
+  const slides = [
+    {
+      image: heroTemple1,
+      title: t("hero.title"),
+      subtitle: t("hero.subtitle"),
+    },
+    {
+      image: heroTemple2,
+      title: t("hero.title"),
+      subtitle: t("hero.subtitle"),
+    },
+    {
+      image: heroTemple3,
+      title: t("hero.title"),
+      subtitle: t("hero.subtitle"),
+    },
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {

@@ -8,6 +8,10 @@ services:
       - key: NODE_ENV
         value: production
       - key: BASE_URL
-        value: https://savedieties.onrender.com
+        value: https://savedieties1.onrender.com
       - key: FRONTEND_URL
-        value: https://savediety.netlify.app
+        value: https://savedeitiesma.netlify.app
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false

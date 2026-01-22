@@ -1,32 +1,31 @@
 import { Shield, Home, Scale } from "lucide-react";
-
-const offerings = [
-  {
-    icon: Home,
-    title: "Streamline Temple Administration",
-    description:
-      "Help and support all the Devaswom administrations and its functionaries of the Hindu temples to protect and preserve the properties.",
-  },
-  {
-    icon: Shield,
-    title: "Safeguard the Adobe of Deities",
-    description:
-      "Secure and safeguard the adobes of the deities from alienations and attachments by any individuals, firms, corporations, groups, etc with an arriere-pensee.",
-  },
-  {
-    icon: Scale,
-    title: "Legal Assistance",
-    description:
-      "Legally stand behind for the well being of the Hindus including conducting cases relating to Hindu society, religion both spiritual and material including temple related issues both legal and allied.",
-  },
-];
+import { useTranslation } from "@/hooks/useTranslation";
 
 const SevaOfferings = () => {
+  const { t } = useTranslation();
+
+  const offerings = [
+    {
+      icon: Home,
+      title: t("seva.offering1"),
+      description: t("seva.offering1Desc"),
+    },
+    {
+      icon: Shield,
+      title: t("seva.offering2"),
+      description: t("seva.offering2Desc"),
+    },
+    {
+      icon: Scale,
+      title: t("seva.offering3"),
+      description: t("seva.offering3Desc"),
+    },
+  ];
   return (
     <section className="bg-dark-section py-20" id="seva">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-display text-primary-foreground text-center mb-4">
-          Our Seva Offerings
+          {t("seva.title")}
         </h2>
         <div className="w-24 h-1 bg-saffron mx-auto mb-12" />
 

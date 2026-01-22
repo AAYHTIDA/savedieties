@@ -12,6 +12,7 @@ import { LoginForm } from '@/components/auth/LoginForm';
 import { UserLoginForm } from '@/components/auth/UserLoginForm';
 import { UserManagement } from '@/components/auth/UserManagement';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/hooks/useTranslation';
 import { firebaseApi } from '@/lib/firebase';
 import { CourtCase, CourtCaseFormData } from '@/types/courtCase';
 import { toast } from 'sonner';
@@ -28,6 +29,7 @@ const CourtCaseCardNew: React.FC<{
   showActions?: boolean;
 }> = ({ courtCase, onEdit, onDelete, onDownload, onKnowMore, showActions }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { t } = useTranslation();
 
   // Combine main image and additional images
   const allImages = React.useMemo(() => {
@@ -63,7 +65,16 @@ const CourtCaseCardNew: React.FC<{
   };
 
   const getStatusText = (status: string) => {
-    return status;
+    const { t } = useTranslation();
+    const statusMap: { [key: string]: string } = {
+      'Active': t('courtCases.inProgress'),
+      'In Progress': t('courtCases.inProgress'),
+      'Pending': 'പെൻഡിംഗ്',
+      'In Court': t('courtCases.inCourt'),
+      'Closed': 'അടച്ചത്',
+      'Settled': 'തീർപ്പാക്കിയത്'
+    };
+    return statusMap[status] || status;
   };
 
   return (
@@ -139,7 +150,7 @@ const CourtCaseCardNew: React.FC<{
             className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center gap-2"
             onClick={() => onKnowMore && onKnowMore(courtCase)}
           >
-            Know More
+            {t("media.knowMore")}
             <ChevronRight className="h-4 w-4" />
           </Button>
 
@@ -172,6 +183,7 @@ export default function CourtCases() {
   const { user, isAdmin, isUser, logout, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
@@ -298,12 +310,12 @@ export default function CourtCases() {
               </Link>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
-              <Link to="/" className="text-gray-700 hover:text-orange-600">Home</Link>
-              <div className="text-gray-700 hover:text-orange-600">Our Seva</div>
-              <div className="text-orange-600 font-medium">Media Centre</div>
-              <div className="text-gray-700 hover:text-orange-600">About Us</div>
-              <div className="text-gray-700 hover:text-orange-600">Contact Us</div>
-              <div className="text-gray-700 hover:text-orange-600">Contribute</div>
+              <Link to="/" className="text-gray-700 hover:text-orange-600">{t("nav.home")}</Link>
+              <div className="text-gray-700 hover:text-orange-600">{t("nav.ourSeva")}</div>
+              <div className="text-orange-600 font-medium">{t("nav.mediaCentre")}</div>
+              <div className="text-gray-700 hover:text-orange-600">{t("nav.aboutUs")}</div>
+              <div className="text-gray-700 hover:text-orange-600">{t("nav.contactUs")}</div>
+              <div className="text-gray-700 hover:text-orange-600">{t("nav.contribute")}</div>
             </nav>
             <div className="flex items-center gap-4">
               {user ? (
@@ -315,15 +327,15 @@ export default function CourtCases() {
                   </div>
                   {isAdmin && (
                     <Button variant="outline" onClick={() => setShowUserManagement(true)} size="sm">
-                      <Users className="h-4 w-4 mr-2" />Manage Users
+                      <Users className="h-4 w-4 mr-2" />{t("courtCases.inProgress")}
                     </Button>
                   )}
-                  <Button variant="outline" onClick={logout} size="sm"><LogOut className="h-4 w-4 mr-2" />Logout</Button>
+                  <Button variant="outline" onClick={logout} size="sm"><LogOut className="h-4 w-4 mr-2" />{t("auth.userLogin")}</Button>
                 </>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Button onClick={() => setShowUserLogin(true)} size="sm" variant="outline">User Login</Button>
-                  <Button onClick={() => setShowLogin(true)} size="sm" className="bg-orange-600 hover:bg-orange-700">Admin Login</Button>
+                  <Button onClick={() => setShowUserLogin(true)} size="sm" variant="outline">{t("auth.userLogin")}</Button>
+                  <Button onClick={() => setShowLogin(true)} size="sm" className="bg-orange-600 hover:bg-orange-700">{t("auth.adminLogin")}</Button>
                 </div>
               )}
             </div>
@@ -335,18 +347,18 @@ export default function CourtCases() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center text-sm text-gray-600">
             <Home className="h-4 w-4 mr-2" />
-            <Link to="/" className="hover:text-orange-600">Home</Link>
+            <Link to="/" className="hover:text-orange-600">{t("nav.home")}</Link>
             <ChevronRight className="h-4 w-4 mx-2" />
-            <span className="text-gray-600">Media Centre</span>
+            <span className="text-gray-600">{t("nav.mediaCentre")}</span>
             <ChevronRight className="h-4 w-4 mx-2" />
-            <span className="text-orange-600 font-medium">Court Cases</span>
+            <span className="text-orange-600 font-medium">{t("courtCases.title")}</span>
           </div>
         </div>
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-orange-600 mb-2">Court Cases</h1>
+          <h1 className="text-4xl font-bold text-orange-600 mb-2">{t("courtCases.title")}</h1>
         </div>
 
         {/* Search Bar and Clear Filters */}
@@ -354,7 +366,7 @@ export default function CourtCases() {
           <div className="relative max-w-md flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Search court cases..."
+              placeholder={t("courtCases.title")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10 pr-4 py-2 w-full border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"

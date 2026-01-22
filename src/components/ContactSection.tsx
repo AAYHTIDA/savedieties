@@ -2,6 +2,7 @@ import { MapPin, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const ContactSection = () => {
     subject: '',
     message: ''
   });
+  const { t } = useTranslation();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -54,7 +56,7 @@ const ContactSection = () => {
     <section className="bg-dark-section py-20" id="contact">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-display text-primary-foreground text-center mb-4">
-          Contact Us
+          {t("contact.title")}
         </h2>
         <div className="w-24 h-1 bg-saffron mx-auto mb-12" />
 
@@ -62,14 +64,13 @@ const ContactSection = () => {
           {/* Contact Info */}
           <div>
             <h3 className="text-xl font-display text-saffron mb-6">
-              SAKETHAM HINDU LITIGANTS TRUST
+              {t("contact.organizationName")}
             </h3>
             <div className="space-y-4">
               <div className="flex items-start gap-4">
                 <MapPin className="w-5 h-5 text-saffron mt-1 flex-shrink-0" />
                 <p className="text-primary-foreground/80">
-                  No 63/3171 Bharatham, Opposite NSS Karayogam, Palliparambu Lane, 
-                  Ponoth Road, Kaloor P.O, PIN 682017
+                  {t("contact.address")}
                 </p>
               </div>
               <div className="flex items-center gap-4">
@@ -78,7 +79,7 @@ const ContactSection = () => {
                   href="mailto:contact@savedeities.org"
                   className="text-primary-foreground/80 hover:text-saffron transition-colors"
                 >
-                  contact@savedeities.org
+                  {t("contact.email")}
                 </a>
               </div>
               <div className="flex items-center gap-4">
@@ -87,7 +88,7 @@ const ContactSection = () => {
                   href="tel:+918138018300"
                   className="text-primary-foreground/80 hover:text-saffron transition-colors"
                 >
-                  +91 8138018300
+                  {t("contact.phone")}
                 </a>
               </div>
             </div>
@@ -102,7 +103,7 @@ const ContactSection = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="Your Name *"
+                  placeholder={t("contact.name")}
                   required
                   className="w-full px-4 py-3 bg-dark-card border border-border rounded-lg text-primary-foreground placeholder:text-muted-foreground focus:outline-none focus:border-saffron"
                 />
@@ -111,7 +112,7 @@ const ContactSection = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="Your Email *"
+                  placeholder={t("contact.emailLabel")}
                   required
                   className="w-full px-4 py-3 bg-dark-card border border-border rounded-lg text-primary-foreground placeholder:text-muted-foreground focus:outline-none focus:border-saffron"
                 />
@@ -121,14 +122,14 @@ const ContactSection = () => {
                 name="subject"
                 value={formData.subject}
                 onChange={handleInputChange}
-                placeholder="Subject"
+                placeholder={t("contact.subject")}
                 className="w-full px-4 py-3 bg-dark-card border border-border rounded-lg text-primary-foreground placeholder:text-muted-foreground focus:outline-none focus:border-saffron"
               />
               <textarea
                 name="message"
                 value={formData.message}
                 onChange={handleInputChange}
-                placeholder="Your Message *"
+                placeholder={t("contact.message")}
                 rows={5}
                 required
                 className="w-full px-4 py-3 bg-dark-card border border-border rounded-lg text-primary-foreground placeholder:text-muted-foreground focus:outline-none focus:border-saffron resize-none"
@@ -139,7 +140,7 @@ const ContactSection = () => {
                 size="lg" 
                 className="w-full md:w-auto"
               >
-                Write to us
+                {t("contact.submit")}
               </Button>
             </form>
           </div>

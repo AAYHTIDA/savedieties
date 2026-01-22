@@ -1,0 +1,88 @@
+{
+  "nav": {
+    "home": "Home",
+    "ourSeva": "Our Seva",
+    "mediaCentre": "Media Centre",
+    "aboutUs": "About Us",
+    "contactUs": "Contact Us",
+    "contribute": "Contribute"
+  },
+  "header": {
+    "logo": "Save Deities",
+    "tagline": "देवाः संतुः हविर्भुजाः"
+  },
+  "hero": {
+    "title": "Saketham Hindu Litigants Trust",
+    "subtitle": "We ensure that all the properties that belongs to the Deities are not mismanaged, encroached or misused."
+  },
+  "quote": {
+    "text": "Deva Santhu Havirbhuja",
+    "translation": "Whatever the deity has, all that is for deity only."
+  },
+  "about": {
+    "title": "About Us",
+    "description": "Legally, Hindu Deities are considered to be a perpetual minor, and hence their properties cannot be transferred to anyone else. The goal of Saketham Hindu Litigants Trust is to ensure that all the properties that belong to the Deities are not mismanaged, encroached or misused and also assist with the well-being of Hindus including conducting cases related to Hindu society and religion, both spiritual and material including temple-related issues both legal and allied.",
+    "knowMore": "Know More"
+  },
+  "seva": {
+    "title": "Our Seva Offerings",
+    "offering1": "Streamline Temple Administration",
+    "offering1Desc": "Help and support all the Devaswom administrations and its functionaries of the Hindu temples to protect and preserve the properties.",
+    "offering2": "Safeguard the Adobe of Deities",
+    "offering2Desc": "Secure and safeguard the adobes of the deities from alienations and attachments by any individuals, firms, corporations, groups, etc with an arriere-pensee.",
+    "offering3": "Legal Assistance",
+    "offering3Desc": "Legally stand behind for the well being of the Hindus including conducting cases relating to Hindu society, religion both spiritual and material including temple related issues both legal and allied."
+  },
+  "media": {
+    "title": "Media Centre",
+    "viewAll": "View All",
+    "knowMore": "Know More"
+  },
+  "courtCases": {
+    "title": "Court Cases",
+    "totalCases": "Total Cases",
+    "inProgress": "In Progress",
+    "inCourt": "In Court",
+    "completed": "Completed",
+    "description": "Access detailed information about ongoing court cases, legal documents, and case status updates. Our comprehensive case management system provides transparency and easy access to legal proceedings.",
+    "viewAll": "View All Court Cases"
+  },
+  "contribute": {
+    "title": "Contribute",
+    "description": "Your gift towards this good cause will go a long way in reviving properties that belongs to Deities and bringing back the sanctity those sacred places deserve. So, any small gift from your end will be treated like as seva to the Temple Hundi of the Deities to take care of the Deities itself.",
+    "button": "Contribute"
+  },
+  "aboutUsCards": {
+    "title": "About Us",
+    "organizingTeam": "Organizing Team",
+    "historicalSignificance": "Historical Significance",
+    "legalSignificance": "Legal Significance"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "organizationName": "SAKETHAM HINDU LITIGANTS TRUST",
+    "address": "No 63/3171 Bharatham, Opposite NSS Karayogam, Palliparambu Lane, Ponoth Road, Kaloor P.O, PIN 682017",
+    "email": "contact@savedeities.org",
+    "phone": "+91 8138018300",
+    "name": "Your Name",
+    "emailLabel": "Your Email",
+    "subject": "Subject",
+    "message": "Your Message",
+    "submit": "Write to us"
+  },
+  "footer": {
+    "copyright": "© {year} Save Deities - Saketham Hindu Litigants Trust. All rights reserved."
+  },
+  "auth": {
+    "adminLogin": "Admin Login",
+    "userLogin": "User Login",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In"
+  },
+  "notFound": {
+    "heading": "404",
+    "message": "Oops! Page not found",
+    "returnHome": "Return to Home"
+  }
+}

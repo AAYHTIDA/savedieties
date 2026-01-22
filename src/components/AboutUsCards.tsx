@@ -1,35 +1,37 @@
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 import aboutTeam from "@/assets/about-team.jpg";
 import aboutHistory from "@/assets/about-history.jpg";
 import aboutLegal from "@/assets/about-legal.jpg";
 
-const cards = [
-  {
-    image: aboutTeam,
-    title: "Organizing Team",
-    description:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.",
-  },
-  {
-    image: aboutHistory,
-    title: "Historical Significance",
-    description:
-      "The concept of Save the Deities has originated from the deplorable situation that exists in the State of Kerala with regard to the Hindu Temples and its administration. Prior to the independence, the geographical area…",
-  },
-  {
-    image: aboutLegal,
-    title: "Legal Significance",
-    description:
-      "In India, the deity is legally considered as a perpetual minor. The concept of perpetual minor was originated taking into consideration of the fact that the deity is not in a position to come out of the temple and…",
-  },
-];
-
 const AboutUsCards = () => {
+  const { t } = useTranslation();
+
+  const cards = [
+    {
+      image: aboutTeam,
+      title: t("aboutUsCards.organizingTeam"),
+      description:
+        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.",
+    },
+    {
+      image: aboutHistory,
+      title: t("aboutUsCards.historicalSignificance"),
+      description:
+        "The concept of Save the Deities has originated from the deplorable situation that exists in the State of Kerala with regard to the Hindu Temples and its administration. Prior to the independence, the geographical area…",
+    },
+    {
+      image: aboutLegal,
+      title: t("aboutUsCards.legalSignificance"),
+      description:
+        "In India, the deity is legally considered as a perpetual minor. The concept of perpetual minor was originated taking into consideration of the fact that the deity is not in a position to come out of the temple and…",
+    },
+  ];
   return (
     <section className="bg-dark-bg py-20" id="about">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-display text-primary-foreground text-center mb-4">
-          About Us
+          {t("aboutUsCards.title")}
         </h2>
         <div className="w-24 h-1 bg-saffron mx-auto mb-12" />
 

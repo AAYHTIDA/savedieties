@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useTranslation";
 import templeAbout from "@/assets/temple-about.jpg";
 
 const AboutSection = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="bg-dark-bg py-16">
       <div className="container mx-auto px-4">
@@ -21,15 +24,10 @@ const AboutSection = () => {
           {/* Content */}
           <div className="text-primary-foreground">
             <p className="text-lg leading-relaxed mb-6">
-              Legally, Hindu Deities are considered to be a perpetual minor, and hence their 
-              properties cannot be transferred to anyone else. The goal of Saketham Hindu 
-              Litigants Trust is to ensure that all the properties that belong to the Deities 
-              are not mismanaged, encroached or misused and also assist with the well-being 
-              of Hindus including conducting cases related to Hindu society and religion, both 
-              spiritual and material including temple-related issues both legal and allied.
+              {t("about.description")}
             </p>
             <Button variant="saffron" size="lg">
-              Know More
+              {t("about.knowMore")}
             </Button>
           </div>
         </div>

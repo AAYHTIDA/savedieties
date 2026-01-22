@@ -3,6 +3,8 @@ const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 
 // Firebase Admin SDK for user management
 let admin;
@@ -39,18 +41,37 @@ try {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Initialize Razorpay
+let razorpay;
+try {
+  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET
+    });
+    console.log('✅ Razorpay initialized');
+  } else {
+    console.warn('⚠️ Razorpay credentials not found - payment features will not work');
+  }
+} catch (error) {
+  console.warn('⚠️ Razorpay initialization failed:', error.message);
+}
+
 // Middleware
 app.use(cors({
   origin: [
     'http://localhost:3000',
     'http://localhost:5173',
+    'http://localhost:8080',
     'http://localhost:8081',
     'https://savediety.netlify.app',
-    'https://savedeities1.netlify.app',
-    'https://savedieties.onrender.com',
+    'https://savedeitiesma.netlify.app',
+    'https://savedieties1.onrender.com',
     process.env.FRONTEND_URL
   ].filter(Boolean),
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
@@ -98,6 +119,9 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Routes
 app.get('/', (req, res) => {
@@ -237,6 +261,137 @@ app.delete('/api/users/:uid', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to delete user'
+    });
+  }
+});
+
+// ============ RAZORPAY PAYMENT ENDPOINTS ============
+
+// Create Razorpay order
+app.post('/api/payment/create-order', async (req, res) => {
+  try {
+    if (!razorpay) {
+      return res.status(500).json({
+        success: false,
+        error: 'Payment gateway not configured'
+      });
+    }
+
+    const { amount, currency = 'INR', receipt, notes } = req.body;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid amount'
+      });
+    }
+
+    // Create Razorpay order
+    const options = {
+      amount: amount * 100, // Razorpay expects amount in paise
+      currency: currency,
+      receipt: receipt || `receipt_${Date.now()}`,
+      notes: notes || {}
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    res.json({
+      success: true,
+      order: {
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        receipt: order.receipt
+      },
+      key_id: process.env.RAZORPAY_KEY_ID
+    });
+
+  } catch (error) {
+    console.error('Create order error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to create payment order'
+    });
+  }
+});
+
+// Verify Razorpay payment signature
+app.post('/api/payment/verify', async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing payment verification parameters'
+      });
+    }
+
+    // Create signature for verification
+    const sign = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSign = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(sign.toString())
+      .digest('hex');
+
+    if (razorpay_signature === expectedSign) {
+      // Payment is verified
+      res.json({
+        success: true,
+        message: 'Payment verified successfully',
+        payment_id: razorpay_payment_id,
+        order_id: razorpay_order_id
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid payment signature'
+      });
+    }
+
+  } catch (error) {
+    console.error('Verify payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to verify payment'
+    });
+  }
+});
+
+// Get payment details
+app.get('/api/payment/:paymentId', async (req, res) => {
+  try {
+    if (!razorpay) {
+      return res.status(500).json({
+        success: false,
+        error: 'Payment gateway not configured'
+      });
+    }
+
+    const { paymentId } = req.params;
+
+    const payment = await razorpay.payments.fetch(paymentId);
+
+    res.json({
+      success: true,
+      payment: {
+        id: payment.id,
+        amount: payment.amount / 100, // Convert paise to rupees
+        currency: payment.currency,
+        status: payment.status,
+        method: payment.method,
+        email: payment.email,
+        contact: payment.contact,
+        created_at: payment.created_at
+      }
+    });
+
+  } catch (error) {
+    console.error('Fetch payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch payment details'
     });
   }
 });
