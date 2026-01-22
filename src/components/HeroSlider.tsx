@@ -60,12 +60,12 @@ const HeroSlider = () => {
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: `url(${slide.image})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-dark-bg/90" />
+          <div className="absolute inset-0 bg-gradient-to-b from-dark-bg/30 via-dark-bg/50 to-dark-bg/95" />
         </div>
       ))}
 
       {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 bg-dark-bg/95 py-10">
+      <div className="absolute bottom-0 left-0 right-0 bg-dark-bg/98 py-10">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-3xl md:text-5xl font-display text-primary-foreground mb-4">
             {slides[currentSlide].title}
