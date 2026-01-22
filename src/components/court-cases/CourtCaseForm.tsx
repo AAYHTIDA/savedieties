@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Upload, X, MapPin } from 'lucide-react';
+import { Loader2, Upload, X, MapPin, Link as LinkIcon } from 'lucide-react';
 import { CourtCase, CourtCaseFormData } from '@/types/courtCase';
 
 const courtCaseSchema = z.object({
@@ -38,6 +38,8 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
 }) => {
   const [error, setError] = useState<string>('');
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
+  const [imageUploadMode, setImageUploadMode] = useState<'file' | 'url'>('file');
   const [additionalImages, setAdditionalImages] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
 
@@ -101,7 +103,23 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
         };
       }
 
-      await onSubmit(formData, selectedImageFile || undefined, additionalImages.length > 0 ? additionalImages : undefined);
+      let imageFileToSubmit = selectedImageFile;
+
+      // Convert URL to File if URL mode is selected
+      if (selectedImageUrl && !selectedImageFile) {
+        try {
+          const response = await fetch(selectedImageUrl);
+          const blob = await response.blob();
+          const urlParts = selectedImageUrl.split('/');
+          const filename = urlParts[urlParts.length - 1].split('?')[0] || 'image.jpg';
+          imageFileToSubmit = new File([blob], filename, { type: blob.type });
+        } catch (error) {
+          setError('Failed to download image from URL');
+          return;
+        }
+      }
+
+      await onSubmit(formData, imageFileToSubmit || undefined, additionalImages.length > 0 ? additionalImages : undefined);
     } catch (error: any) {
       setError(error.message || 'Failed to save court case');
     }
@@ -119,7 +137,23 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
         return;
       }
       setSelectedImageFile(file);
+      setSelectedImageUrl('');
       setError('');
+    }
+  };
+
+  const handleImageUrlChange = (url: string) => {
+    setSelectedImageUrl(url);
+    setSelectedImageFile(null);
+    setError('');
+  };
+
+  const validateImageUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
     }
   };
 
@@ -138,23 +172,30 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
     e.stopPropagation();
     setDragActive(false);
 
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        setError('Only image files are allowed');
-        return;
+    if (imageUploadMode === 'file') {
+      const file = e.dataTransfer.files?.[0];
+      if (file) {
+        if (!file.type.startsWith('image/')) {
+          setError('Only image files are allowed');
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          setError('Image size must be less than 5MB');
+          return;
+        }
+        setSelectedImageFile(file);
+        setSelectedImageUrl('');
+        setError('');
       }
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image size must be less than 5MB');
-        return;
-      }
-      setSelectedImageFile(file);
-      setError('');
     }
   };
 
   const removeImageFile = () => {
     setSelectedImageFile(null);
+  };
+
+  const removeImageUrl = () => {
+    setSelectedImageUrl('');
   };
 
   const handleAdditionalImagesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -323,66 +364,136 @@ export const CourtCaseForm: React.FC<CourtCaseFormProps> = ({
           {/* Image Upload */}
           <div className="space-y-2">
             <Label>Temple Image</Label>
-            <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                dragActive
-                  ? 'border-primary bg-primary/5'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              {selectedImageFile ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <span className="text-sm font-medium">{selectedImageFile.name}</span>
+            
+            {/* Upload Mode Tabs */}
+            <div className="flex gap-2 mb-4">
+              <Button
+                type="button"
+                variant={imageUploadMode === 'file' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setImageUploadMode('file')}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                Upload File
+              </Button>
+              <Button
+                type="button"
+                variant={imageUploadMode === 'url' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setImageUploadMode('url')}
+                className="flex items-center gap-2"
+              >
+                <LinkIcon className="h-4 w-4" />
+                From URL
+              </Button>
+            </div>
+
+            {/* File Upload Mode */}
+            {imageUploadMode === 'file' && (
+              <div
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                  dragActive
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                {selectedImageFile ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-sm font-medium">{selectedImageFile.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={removeImageFile}
+                        disabled={isLoading}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <img
+                      src={URL.createObjectURL(selectedImageFile)}
+                      alt="Preview"
+                      className="mx-auto h-32 w-auto rounded-lg object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-sm text-gray-600 mb-2">
+                      Drag and drop an image here, or click to select
+                    </p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                      id="image-upload"
+                      disabled={isLoading}
+                    />
                     <Button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={removeImageFile}
+                      variant="outline"
+                      onClick={() => document.getElementById('image-upload')?.click()}
                       disabled={isLoading}
                     >
-                      <X className="h-4 w-4" />
+                      Select Image
                     </Button>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Maximum file size: 5MB (JPG, PNG, WebP)
+                    </p>
                   </div>
-                  <img
-                    src={URL.createObjectURL(selectedImageFile)}
-                    alt="Preview"
-                    className="mx-auto h-32 w-auto rounded-lg object-cover"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-sm text-gray-600 mb-2">
-                    Drag and drop an image here, or click to select
-                  </p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                    id="image-upload"
+                )}
+              </div>
+            )}
+
+            {/* URL Upload Mode */}
+            {imageUploadMode === 'url' && (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Input
+                    type="url"
+                    placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
+                    value={selectedImageUrl}
+                    onChange={(e) => handleImageUrlChange(e.target.value)}
                     disabled={isLoading}
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById('image-upload')?.click()}
-                    disabled={isLoading}
-                  >
-                    Select Image
-                  </Button>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Maximum file size: 5MB (JPG, PNG, WebP)
+                  <p className="text-xs text-gray-500">
+                    Paste the direct URL of an image from the internet
                   </p>
                 </div>
-              )}
-            </div>
-            {isEditing && courtCase?.imageName && !selectedImageFile && (
+                
+                {selectedImageUrl && validateImageUrl(selectedImageUrl) && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-sm font-medium truncate">{selectedImageUrl}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={removeImageUrl}
+                        disabled={isLoading}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <img
+                      src={selectedImageUrl}
+                      alt="Preview"
+                      className="mx-auto h-32 w-auto rounded-lg object-cover"
+                      onError={() => setError('Failed to load image from URL')}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isEditing && courtCase?.imageName && !selectedImageFile && !selectedImageUrl && (
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">
                   Current image: {courtCase.imageName}

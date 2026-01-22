@@ -14,7 +14,7 @@ import {
   orderBy,
   Timestamp,
 } from 'firebase/firestore';
-// Firebase Storage imports removed - using local backend instead
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { CourtCase, CourtCaseFormData, CourtCasesResponse, AppUser } from '@/types/courtCase';
 
 const USERS_COLLECTION = 'users';
@@ -294,22 +294,29 @@ export const firebaseApi = {
         const formData = new FormData();
         formData.append('photo', imageFile);
         
+        console.log('Uploading main image to:', `${backendUrl}/api/court-cases/upload`);
         const response = await fetch(`${backendUrl}/api/court-cases/upload`, {
           method: 'POST',
           body: formData
         });
         
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
+        console.log('Main image upload response:', result);
         
         if (result.success) {
           imageUrl = result.url;
           imageName = result.filename;
+          console.log('Main image uploaded successfully:', { imageUrl, imageName });
         } else {
           throw new Error(result.error || 'Failed to upload image');
         }
       } catch (error) {
         console.error('Image upload error:', error);
-        throw new Error('Failed to upload image to server');
+        throw new Error(`Failed to upload image to server: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
@@ -321,12 +328,18 @@ export const firebaseApi = {
           formData.append('photos', file);
         });
         
+        console.log('Uploading additional images to:', `${backendUrl}/api/court-cases/upload-multiple`);
         const response = await fetch(`${backendUrl}/api/court-cases/upload-multiple`, {
           method: 'POST',
           body: formData
         });
         
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
+        console.log('Additional images upload response:', result);
         
         if (result.success) {
           images = result.images.map((img: any) => ({
@@ -334,12 +347,13 @@ export const firebaseApi = {
             filename: img.filename,
             uploadedAt: img.uploadedAt
           }));
+          console.log('Additional images uploaded successfully:', images.length, 'images');
         } else {
           throw new Error(result.error || 'Failed to upload additional images');
         }
       } catch (error) {
         console.error('Additional images upload error:', error);
-        throw new Error('Failed to upload additional images to server');
+        throw new Error(`Failed to upload additional images to server: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
@@ -415,22 +429,29 @@ export const firebaseApi = {
         const formData = new FormData();
         formData.append('photo', imageFile);
         
+        console.log('Uploading updated image to:', `${backendUrl}/api/court-cases/upload`);
         const response = await fetch(`${backendUrl}/api/court-cases/upload`, {
           method: 'POST',
           body: formData
         });
         
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
+        console.log('Updated image upload response:', result);
         
         if (result.success) {
           updateData.imageUrl = result.url;
           updateData.imageName = result.filename;
+          console.log('Image updated successfully:', { imageUrl: result.url, imageName: result.filename });
         } else {
           throw new Error(result.error || 'Failed to upload image');
         }
       } catch (error) {
         console.error('Image upload error:', error);
-        throw new Error('Failed to upload image to server');
+        throw new Error(`Failed to upload image to server: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
@@ -442,12 +463,18 @@ export const firebaseApi = {
           formData.append('photos', file);
         });
         
+        console.log('Uploading additional images to:', `${backendUrl}/api/court-cases/upload-multiple`);
         const response = await fetch(`${backendUrl}/api/court-cases/upload-multiple`, {
           method: 'POST',
           body: formData
         });
         
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
+        console.log('Additional images upload response:', result);
         
         if (result.success) {
           const newImages = result.images.map((img: any) => ({
@@ -458,12 +485,13 @@ export const firebaseApi = {
           // Append new images to existing ones
           const existingImages = existingData.images || [];
           updateData.images = [...existingImages, ...newImages];
+          console.log('Additional images updated successfully:', newImages.length, 'new images');
         } else {
           throw new Error(result.error || 'Failed to upload additional images');
         }
       } catch (error) {
         console.error('Additional images upload error:', error);
-        throw new Error('Failed to upload additional images to server');
+        throw new Error(`Failed to upload additional images to server: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 

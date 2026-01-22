@@ -18,6 +18,7 @@ import { CourtCase, CourtCaseFormData } from '@/types/courtCase';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import logoImage from '@/assets/logo.png';
 
 // Court Case Card Component with image carousel
 const CourtCaseCardNew: React.FC<{
@@ -300,13 +301,7 @@ export default function CourtCases() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
               <Link to="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center">
-                  <Scale className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-orange-600">SaveDeities</h1>
-                  <p className="text-sm text-gray-600">देवा: सत्य: हरिदेवा:</p>
-                </div>
+                <img src={logoImage} alt="Save Deities" className="h-12 w-auto" />
               </Link>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
@@ -327,10 +322,10 @@ export default function CourtCases() {
                   </div>
                   {isAdmin && (
                     <Button variant="outline" onClick={() => setShowUserManagement(true)} size="sm">
-                      <Users className="h-4 w-4 mr-2" />{t("courtCases.inProgress")}
+                      <Users className="h-4 w-4 mr-2" />User Management
                     </Button>
                   )}
-                  <Button variant="outline" onClick={logout} size="sm"><LogOut className="h-4 w-4 mr-2" />{t("auth.userLogin")}</Button>
+                  <Button variant="outline" onClick={logout} size="sm"><LogOut className="h-4 w-4 mr-2" />Logout</Button>
                 </>
               ) : (
                 <div className="flex items-center gap-2">

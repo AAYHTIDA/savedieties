@@ -428,11 +428,13 @@ app.use('*', (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Court Cases Backend Server running on http://localhost:${PORT}`);
+// Start server - listen on 0.0.0.0 for production (Render, etc.)
+app.listen(PORT, '0.0.0.0', () => {
+  const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+  console.log(`🚀 Court Cases Backend Server running on port ${PORT}`);
   console.log(`📁 Photos will be stored in: ${photosDir}`);
-  console.log(`🖼️  Access photos at: http://localhost:${PORT}/photos/[filename]`);
+  console.log(`🖼️  Access photos at: ${baseUrl}/photos/[filename]`);
+  console.log(`🌐 Base URL: ${baseUrl}`);
 });
 
 module.exports = app;
