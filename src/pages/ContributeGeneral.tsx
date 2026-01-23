@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, CreditCard, Wallet, Building2, CheckCircle2, Heart, Scale, QrCode } from 'lucide-react';
+import { ArrowLeft, CreditCard, Wallet, Building2, CheckCircle2, Heart, Scale } from 'lucide-react';
 import { initiatePayment, RazorpayResponse } from '@/lib/razorpay';
 
 const ContributeGeneral: React.FC = () => {
   const navigate = useNavigate();
   const [amount, setAmount] = useState('');
   const [customAmount, setCustomAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'netbanking'>('upi');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'netbanking'>('card');
   const [donorName, setDonorName] = useState('');
   const [donorEmail, setDonorEmail] = useState('');
   const [donorPhone, setDonorPhone] = useState('');
@@ -106,7 +106,7 @@ const ContributeGeneral: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
@@ -119,9 +119,63 @@ const ContributeGeneral: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Top Row - Scan QR Code */}
+        <div className="mb-8">
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Heart className="mr-2 h-5 w-5 text-orange-600" />
+                Scan & Pay
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex justify-center p-6">
+              <img 
+                src="/bhim-upi-qr.png"
+                alt="BHIM UPI QR Code"
+                className="w-48 h-48 object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Bottom Row - Account Payment & Support Temple Protection */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Payment Form */}
+          {/* Left Column - Account Payment */}
+          <div>
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 h-full">
+              <CardHeader>
+                <CardTitle className="text-lg text-orange-600">Account Payment</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div>
+                  <p className="font-semibold text-gray-700">Account Holder Name:</p>
+                  <p className="text-gray-600">SAKETHAM HINDU LITIGANTS TRUST</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-700">Account Number:</p>
+                  <p className="text-gray-600">01428870805949</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-700">Bank Name:</p>
+                  <p className="text-gray-600">Dhanalakshmi Bank Ltd Bank</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-700">Bank Location:</p>
+                  <p className="text-gray-600">Kaloor, Ernakulam</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-700">IFSC Code:</p>
+                  <p className="text-gray-600">DLX0000148</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Payment Form */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
@@ -210,51 +264,6 @@ const ContributeGeneral: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Payment Method */}
-                  <div className="space-y-3 pt-4 border-t">
-                    <Label className="text-base font-semibold">Payment Method</Label>
-                    <div className="grid grid-cols-1 gap-3">
-                      <Button
-                        type="button"
-                        variant={paymentMethod === 'upi' ? 'default' : 'outline'}
-                        className={`justify-start h-auto py-4 ${paymentMethod === 'upi' ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
-                        onClick={() => setPaymentMethod('upi')}
-                      >
-                        <Wallet className="mr-3 h-5 w-5" />
-                        <div className="text-left">
-                          <div className="font-semibold">UPI</div>
-                          <div className="text-xs opacity-80">Google Pay, PhonePe, Paytm</div>
-                        </div>
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant={paymentMethod === 'card' ? 'default' : 'outline'}
-                        className={`justify-start h-auto py-4 ${paymentMethod === 'card' ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
-                        onClick={() => setPaymentMethod('card')}
-                      >
-                        <CreditCard className="mr-3 h-5 w-5" />
-                        <div className="text-left">
-                          <div className="font-semibold">Credit/Debit Card</div>
-                          <div className="text-xs opacity-80">Visa, Mastercard, Rupay</div>
-                        </div>
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant={paymentMethod === 'netbanking' ? 'default' : 'outline'}
-                        className={`justify-start h-auto py-4 ${paymentMethod === 'netbanking' ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
-                        onClick={() => setPaymentMethod('netbanking')}
-                      >
-                        <Building2 className="mr-3 h-5 w-5" />
-                        <div className="text-left">
-                          <div className="font-semibold">Net Banking</div>
-                          <div className="text-xs opacity-80">All major banks</div>
-                        </div>
-                      </Button>
-                    </div>
-                  </div>
-
                   {/* Submit Button */}
                   <Button
                     type="submit"
@@ -278,106 +287,73 @@ const ContributeGeneral: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
 
-          {/* Right Column - Information & QR Code */}
-          <div className="space-y-4">
-            {/* QR Code Payment Card */}
-            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <QrCode className="mr-2 h-5 w-5 text-orange-600" />
-                  Scan & Pay
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm font-semibold text-orange-900 mb-2">BHIM UPI Payment</p>
-                  <p className="text-xs text-orange-800 mb-3">Scan QR code to pay or enter payment address</p>
-                  <p className="text-xs font-mono text-orange-900 mb-4">sakethamhindu@dlb</p>
-                </div>
-                <div className="bg-white p-3 rounded-lg flex justify-center">
-                  <img 
-                    src="/bhim-upi-qr.png"
-                    alt="BHIM UPI QR Code"
-                    className="w-48 h-48 object-contain"
-                    onError={(e) => {
-                      // Fallback if image not found
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-center text-orange-900 font-semibold">
-                  OR ENTER PAYMENT ADDRESS<br/>
-                  sakethamhindu@dlb
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Impact Card */}
-            <Card className="sticky top-4">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <Scale className="mr-2 h-5 w-5 text-orange-600" />
-                  Your Impact
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-orange-600 font-bold">1</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm">Legal Support</h4>
-                      <p className="text-xs text-gray-600">Fund court cases and legal proceedings</p>
-                    </div>
+        {/* Bottom Section - Impact Card */}
+        <div className="mt-8">
+          <Card className="sticky top-4">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Scale className="mr-2 h-5 w-5 text-orange-600" />
+                Your Impact
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-orange-600 font-bold">1</span>
                   </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-orange-600 font-bold">2</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm">Temple Protection</h4>
-                      <p className="text-xs text-gray-600">Preserve sacred properties and heritage</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-orange-600 font-bold">3</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm">Community Support</h4>
-                      <p className="text-xs text-gray-600">Help maintain temple sanctity</p>
-                    </div>
+                  <div>
+                    <h4 className="font-semibold text-sm">Legal Support</h4>
+                    <p className="text-xs text-gray-600">Fund court cases and legal proceedings</p>
                   </div>
                 </div>
 
-                <Alert className="bg-orange-50 border-orange-200">
-                  <AlertDescription className="text-xs text-orange-900">
-                    <strong>44 Active Cases</strong> currently need your support. Your contribution helps cover legal fees, court costs, and advocacy efforts.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="pt-4 border-t space-y-2">
-                  <h4 className="font-semibold text-sm">Why Contribute?</h4>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• Protect temple properties</li>
-                    <li>• Support ongoing legal battles</li>
-                    <li>• Preserve cultural heritage</li>
-                    <li>• Ensure deity rights</li>
-                  </ul>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-orange-600 font-bold">2</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm">Temple Protection</h4>
+                    <p className="text-xs text-gray-600">Preserve sacred properties and heritage</p>
+                  </div>
                 </div>
 
-                <Alert>
-                  <AlertDescription className="text-xs">
-                    All contributions are treated as seva to the Temple Hundi and used for deity welfare.
-                  </AlertDescription>
-                </Alert>
-              </CardContent>
-            </Card>
-          </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-orange-600 font-bold">3</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm">Community Support</h4>
+                    <p className="text-xs text-gray-600">Help maintain temple sanctity</p>
+                  </div>
+                </div>
+              </div>
+
+              <Alert className="bg-orange-50 border-orange-200">
+                <AlertDescription className="text-xs text-orange-900">
+                  <strong>44 Active Cases</strong> currently need your support. Your contribution helps cover legal fees, court costs, and advocacy efforts.
+                </AlertDescription>
+              </Alert>
+
+              <div className="pt-4 border-t space-y-2">
+                <h4 className="font-semibold text-sm">Why Contribute?</h4>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• Protect temple properties</li>
+                  <li>• Support ongoing legal battles</li>
+                  <li>• Preserve cultural heritage</li>
+                  <li>• Ensure deity rights</li>
+                </ul>
+              </div>
+
+              <Alert>
+                <AlertDescription className="text-xs">
+                  All contributions are treated as seva to the Temple Hundi and used for deity welfare.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

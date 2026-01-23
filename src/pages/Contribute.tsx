@@ -15,7 +15,6 @@ const Contribute: React.FC = () => {
   const navigate = useNavigate();
   const [amount, setAmount] = useState('');
   const [customAmount, setCustomAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'netbanking'>('upi');
   const [donorName, setDonorName] = useState('');
   const [donorEmail, setDonorEmail] = useState('');
   const [donorPhone, setDonorPhone] = useState('');
@@ -245,51 +244,6 @@ const Contribute: React.FC = () => {
                         onChange={(e) => setDonorPhone(e.target.value)}
                         required
                       />
-                    </div>
-                  </div>
-
-                  {/* Payment Method */}
-                  <div className="space-y-3 pt-4 border-t">
-                    <Label className="text-base font-semibold">Payment Method</Label>
-                    <div className="grid grid-cols-1 gap-3">
-                      <Button
-                        type="button"
-                        variant={paymentMethod === 'upi' ? 'default' : 'outline'}
-                        className={`justify-start h-auto py-4 ${paymentMethod === 'upi' ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
-                        onClick={() => setPaymentMethod('upi')}
-                      >
-                        <Wallet className="mr-3 h-5 w-5" />
-                        <div className="text-left">
-                          <div className="font-semibold">UPI</div>
-                          <div className="text-xs opacity-80">Google Pay, PhonePe, Paytm</div>
-                        </div>
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant={paymentMethod === 'card' ? 'default' : 'outline'}
-                        className={`justify-start h-auto py-4 ${paymentMethod === 'card' ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
-                        onClick={() => setPaymentMethod('card')}
-                      >
-                        <CreditCard className="mr-3 h-5 w-5" />
-                        <div className="text-left">
-                          <div className="font-semibold">Credit/Debit Card</div>
-                          <div className="text-xs opacity-80">Visa, Mastercard, Rupay</div>
-                        </div>
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant={paymentMethod === 'netbanking' ? 'default' : 'outline'}
-                        className={`justify-start h-auto py-4 ${paymentMethod === 'netbanking' ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
-                        onClick={() => setPaymentMethod('netbanking')}
-                      >
-                        <Building2 className="mr-3 h-5 w-5" />
-                        <div className="text-left">
-                          <div className="font-semibold">Net Banking</div>
-                          <div className="text-xs opacity-80">All major banks</div>
-                        </div>
-                      </Button>
                     </div>
                   </div>
 
