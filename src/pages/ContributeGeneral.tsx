@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as QRCode from 'qrcode.react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -297,11 +296,14 @@ const ContributeGeneral: React.FC = () => {
                   <p className="text-xs font-mono text-orange-900 mb-4">sakethamhindu@dlb</p>
                 </div>
                 <div className="bg-white p-3 rounded-lg flex justify-center">
-                  <QRCode.QRCodeSVG 
-                    value="upi://pay?pa=sakethamhindu@dlb&pn=SaveDeities&tr=Contribution"
-                    size={200}
-                    level="H"
-                    includeMargin={true}
+                  <img 
+                    src="/bhim-upi-qr.png"
+                    alt="BHIM UPI QR Code"
+                    className="w-48 h-48 object-contain"
+                    onError={(e) => {
+                      // Fallback if image not found
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 </div>
                 <p className="text-xs text-center text-orange-900 font-semibold">

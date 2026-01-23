@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Plus, Scale, LogOut, User, Home, ChevronRight, FileText, Edit, Trash2, Search, Trash, RotateCcw, AlertTriangle, Users } from 'lucide-react';
+import { Loader2, Plus, Scale, LogOut, User, Home, ChevronRight, FileText, Edit, Trash2, Search, Trash, RotateCcw, AlertTriangle, Users, Globe } from 'lucide-react';
 import { CourtCaseForm } from '@/components/court-cases/CourtCaseForm';
 import { CourtCasesMap } from '@/components/court-cases/CourtCasesMap';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { UserLoginForm } from '@/components/auth/UserLoginForm';
 import { UserManagement } from '@/components/auth/UserManagement';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import { firebaseApi } from '@/lib/firebase';
 import { CourtCase, CourtCaseFormData } from '@/types/courtCase';
@@ -184,7 +185,8 @@ export default function CourtCases() {
   const { user, isAdmin, isUser, logout, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const { setLanguage } = useLanguage();
 
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
@@ -290,6 +292,10 @@ export default function CourtCases() {
   const handleKnowMore = (courtCase: CourtCase) => { navigate(`/court-cases/${courtCase.id}`); };
   const handleCloseForm = () => { setShowForm(false); setEditingCase(null); };
 
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'ml' : 'en');
+  };
+
   if (authLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-orange-50"><Loader2 className="h-8 w-8 animate-spin text-orange-600" /></div>;
   }
@@ -333,6 +339,15 @@ export default function CourtCases() {
                   <Button onClick={() => setShowLogin(true)} size="sm" className="bg-orange-600 hover:bg-orange-700">{t("auth.adminLogin")}</Button>
                 </div>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleLanguage}
+                className="border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white flex items-center gap-2"
+              >
+                <Globe className="h-4 w-4" />
+                {language === 'en' ? 'മലയാളം' : 'English'}
+              </Button>
             </div>
           </div>
         </div>
