@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import Header from '@/components/Header';
 
 const ContributeGeneral: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [amount, setAmount] = useState('');
   const [customAmount, setCustomAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'netbanking'>('card');
@@ -19,8 +20,25 @@ const ContributeGeneral: React.FC = () => {
   const [donorPhone, setDonorPhone] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successAmount, setSuccessAmount] = useState('');
 
   const predefinedAmounts = ['500', '1000', '2500', '5000', '10000', '25000'];
+
+  // Check for payment success from URL params (for UPI QR payments)
+  useEffect(() => {
+    const paymentSuccess = searchParams.get('payment_success');
+    const paymentAmount = searchParams.get('amount');
+    
+    if (paymentSuccess === 'true' && paymentAmount) {
+      setSuccessAmount(paymentAmount);
+      setShowSuccess(true);
+      
+      // Redirect after 3 seconds
+      setTimeout(() => {
+        navigate('/');
+      }, 3000);
+    }
+  }, [searchParams, navigate]);
 
   const handleAmountSelect = (value: string) => {
     setAmount(value);
@@ -51,6 +69,7 @@ const ContributeGeneral: React.FC = () => {
     }
 
     setIsProcessing(true);
+    setSuccessAmount(finalAmount);
 
     // Initiate Razorpay payment
     await initiatePayment(
@@ -89,7 +108,7 @@ const ContributeGeneral: React.FC = () => {
             <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h2>
             <p className="text-gray-600 mb-4">
-              Your generous contribution of ₹{getSelectedAmount()} has been received successfully.
+              Your generous contribution of ₹{successAmount} has been received successfully.
             </p>
             <p className="text-sm text-gray-500 mb-4">
               Your support helps protect our temples and preserve our heritage.

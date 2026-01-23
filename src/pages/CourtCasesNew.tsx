@@ -19,7 +19,7 @@ import { CourtCase, CourtCaseFormData } from '@/types/courtCase';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import logoImage from '@/assets/logo.png';
+import Header from '@/components/Header';
 
 // Court Case Card Component with image carousel
 const CourtCaseCardNew: React.FC<{
@@ -302,56 +302,7 @@ export default function CourtCases() {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Link to="/" className="flex items-center gap-3">
-                <img src={logoImage} alt="Save Deities" className="h-12 w-auto" />
-              </Link>
-            </div>
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link to="/" className="text-gray-700 hover:text-orange-600">{t("nav.home")}</Link>
-              <div className="text-gray-700 hover:text-orange-600">{t("nav.ourSeva")}</div>
-              <div className="text-orange-600 font-medium">{t("nav.mediaCentre")}</div>
-              <div className="text-gray-700 hover:text-orange-600">{t("nav.aboutUs")}</div>
-              <div className="text-gray-700 hover:text-orange-600">{t("nav.contactUs")}</div>
-              <div className="text-gray-700 hover:text-orange-600">{t("nav.contribute")}</div>
-            </nav>
-            <div className="flex items-center gap-4">
-              {user ? (
-                <>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <User className="h-4 w-4" />
-                    <span>{user.email}</span>
-                    {isAdmin && <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs">Admin</span>}
-                  </div>
-                  {isAdmin && (
-                    <Button variant="outline" onClick={() => setShowUserManagement(true)} size="sm">
-                      <Users className="h-4 w-4 mr-2" />User Management
-                    </Button>
-                  )}
-                  <Button variant="outline" onClick={logout} size="sm"><LogOut className="h-4 w-4 mr-2" />Logout</Button>
-                </>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Button onClick={() => setShowUserLogin(true)} size="sm" variant="outline">{t("auth.userLogin")}</Button>
-                  <Button onClick={() => setShowLogin(true)} size="sm" className="bg-orange-600 hover:bg-orange-700">{t("auth.adminLogin")}</Button>
-                </div>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleLanguage}
-                className="border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white flex items-center gap-2"
-              >
-                <Globe className="h-4 w-4" />
-                {language === 'en' ? 'മലയാളം' : 'English'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <div className="bg-orange-100 py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

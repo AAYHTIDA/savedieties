@@ -140,6 +140,86 @@ export const initiatePayment = async (
     // Open Razorpay checkout
     const razorpay = new (window as any).Razorpay(razorpayOptions);
     razorpay.open();
+
+    // Replace the header with logo after modal opens
+    setTimeout(() => {
+      // Find all text nodes and elements
+      const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+
+      let node;
+      const nodesToReplace: any[] = [];
+
+      while (node = walker.nextNode()) {
+        if (node.textContent && node.textContent.includes('Save Deities')) {
+          nodesToReplace.push(node);
+        }
+      }
+
+      // Replace found nodes
+      nodesToReplace.forEach((textNode) => {
+        const parent = textNode.parentElement;
+        if (parent) {
+          // Find the closest container (likely the header)
+          let container = parent;
+          while (container && !container.style.backgroundColor && container.parentElement) {
+            container = container.parentElement;
+          }
+
+          // Create logo
+          const logo = document.createElement('img');
+          logo.src = '/logo.png';
+          logo.alt = 'Save Deities';
+          logo.style.cssText = `
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+            max-width: 300px;
+            display: block;
+            margin: 0 auto;
+          `;
+
+          // Clear and replace with logo
+          if (container && container.textContent.includes('Save Deities')) {
+            container.innerHTML = '';
+            container.appendChild(logo);
+          } else {
+            // Fallback: replace just the parent
+            parent.innerHTML = '';
+            parent.appendChild(logo);
+          }
+        }
+      });
+
+      // Also try to find and replace the "S" icon if it exists separately
+      const allElements = document.querySelectorAll('*');
+      allElements.forEach((el) => {
+        if (el.textContent && el.textContent.trim() === 'S' && el.offsetHeight < 100 && el.offsetHeight > 20) {
+          // This might be the icon
+          const parent = el.parentElement;
+          if (parent && parent.textContent.includes('Save Deities')) {
+            const logo = document.createElement('img');
+            logo.src = '/logo.png';
+            logo.alt = 'Save Deities';
+            logo.style.cssText = `
+              height: 60px;
+              width: auto;
+              object-fit: contain;
+              max-width: 300px;
+              display: block;
+              margin: 0 auto;
+            `;
+            parent.innerHTML = '';
+            parent.appendChild(logo);
+          }
+        }
+      });
+    }, 600);
+
   } catch (error) {
     console.error('Payment initiation error:', error);
     onFailure(error);
