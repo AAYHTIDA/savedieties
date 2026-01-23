@@ -9,7 +9,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LoginForm } from "@/components/auth/LoginForm";
 import logoImage from "@/assets/logo.png";
 
-const Header = () => {
+interface HeaderProps {
+  hideAdminLogin?: boolean;
+  hideContribute?: boolean;
+}
+
+const Header = ({ hideAdminLogin = false, hideContribute = false }: HeaderProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const { t, language } = useTranslation();
@@ -22,7 +27,7 @@ const Header = () => {
     { label: t("nav.mediaCentre"), href: "#media", hasDropdown: true },
     { label: t("nav.aboutUs"), href: "#about", hasDropdown: true },
     { label: t("nav.contactUs"), href: "#contact" },
-    { label: t("nav.contribute"), href: "#contribute" },
+    ...(hideContribute ? [] : [{ label: t("nav.contribute"), href: "/contribute" }]),
   ];
 
   const toggleLanguage = () => {
@@ -48,11 +53,10 @@ const Header = () => {
               <a
                 key={item.label}
                 href={item.href}
-                className={`px-5 py-2.5 text-sm font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap rounded-lg ${
-                  item.active
-                    ? "bg-saffron text-primary-foreground shadow-sm"
-                    : "text-foreground hover:text-saffron hover:bg-gray-50"
-                }`}
+                className={`px-5 py-2.5 text-sm font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap rounded-lg ${item.active
+                  ? "bg-saffron text-primary-foreground shadow-sm"
+                  : "text-foreground hover:text-saffron hover:bg-gray-50"
+                  }`}
               >
                 {item.label}
                 {item.hasDropdown && <ChevronDown className="w-3.5 h-3.5" />}
@@ -71,8 +75,8 @@ const Header = () => {
               <Globe className="w-4 h-4" />
               <span className="text-xs font-medium">{language === 'en' ? 'മലയാളം' : 'English'}</span>
             </Button>
-            
-            {!user ? (
+
+            {!hideAdminLogin && !user ? (
               <Button
                 onClick={() => setShowAdminLogin(true)}
                 size="sm"
@@ -81,7 +85,7 @@ const Header = () => {
                 <Lock className="w-4 h-4" />
                 <span className="text-xs font-medium">Admin Login</span>
               </Button>
-            ) : (
+            ) : !hideAdminLogin && user ? (
               <Button
                 onClick={logout}
                 size="sm"
@@ -90,8 +94,8 @@ const Header = () => {
               >
                 <span className="text-xs font-medium">Logout</span>
               </Button>
-            )}
-            
+            ) : null}
+
             <Button
               variant="ghost"
               size="icon"
@@ -110,9 +114,8 @@ const Header = () => {
               <a
                 key={item.label}
                 href={item.href}
-                className={`block px-6 py-3.5 text-sm font-medium transition-colors ${
-                  item.active ? "text-saffron bg-saffron/10" : "text-foreground hover:text-saffron hover:bg-gray-100"
-                }`}
+                className={`block px-6 py-3.5 text-sm font-medium transition-colors ${item.active ? "text-saffron bg-saffron/10" : "text-foreground hover:text-saffron hover:bg-gray-100"
+                  }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
@@ -128,7 +131,7 @@ const Header = () => {
                 <Globe className="w-4 h-4" />
                 {language === 'en' ? 'മലയാളം' : 'English'}
               </Button>
-              {!user ? (
+              {!hideAdminLogin && !user ? (
                 <Button
                   onClick={() => {
                     setShowAdminLogin(true);
@@ -140,7 +143,7 @@ const Header = () => {
                   <Lock className="w-4 h-4" />
                   Admin Login
                 </Button>
-              ) : (
+              ) : !hideAdminLogin && user ? (
                 <Button
                   onClick={() => {
                     logout();
@@ -152,20 +155,13 @@ const Header = () => {
                 >
                   Logout
                 </Button>
-              )}
+              ) : null}
             </div>
           </nav>
         )}
       </div>
 
-      {/* Contribute Side Button */}
-      <a
-        href="#contribute"
-        className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 bg-saffron text-primary-foreground py-4 px-2 writing-mode-vertical-rl rotate-180 font-semibold text-sm uppercase tracking-wider hover:bg-saffron-dark transition-colors z-40"
-        style={{ writingMode: "vertical-rl" }}
-      >
-        ✻ {t("nav.contribute")}
-      </a>
+      {/* Contribute Side Button - Removed */}
 
       {/* Admin Login Dialog */}
       <Dialog open={showAdminLogin} onOpenChange={setShowAdminLogin}>

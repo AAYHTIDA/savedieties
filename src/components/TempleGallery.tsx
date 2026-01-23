@@ -27,7 +27,7 @@ const TempleGallery = () => {
             key={index}
             src={image}
             alt="Temple"
-            className="w-48 h-36 object-cover mx-2 rounded-lg flex-shrink-0 hover:scale-105 transition-transform"
+            className="w-48 h-48 object-contain mx-2 rounded-lg flex-shrink-0 hover:scale-105 transition-transform"
           />
         ))}
       </div>

@@ -47,14 +47,13 @@ const HeroSlider = () => {
   };
 
   return (
-    <section className="relative h-[70vh] min-h-[500px] overflow-hidden">
+    <section className="relative h-screen min-h-[600px] overflow-hidden">
       {/* Slides */}
       {slides.map((slide, index) => (
         <div
           key={index}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            index === currentSlide ? "opacity-100" : "opacity-0"
-          }`}
+          className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"
+            }`}
         >
           <div
             className="absolute inset-0 bg-cover bg-center"
@@ -96,9 +95,8 @@ const HeroSlider = () => {
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-2 h-2 rounded-full transition-all ${
-              index === currentSlide ? "bg-saffron w-6" : "bg-primary-foreground/50"
-            }`}
+            className={`w-2 h-2 rounded-full transition-all ${index === currentSlide ? "bg-saffron w-6" : "bg-primary-foreground/50"
+              }`}
           />
         ))}
       </div>

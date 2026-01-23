@@ -47,7 +47,7 @@ const MediaCentre = () => {
               <img
                 src={item.image}
                 alt={item.title}
-                className="w-full h-48 object-cover"
+                className="w-full h-64 object-contain bg-dark-section"
               />
               <div className="p-6">
                 <p className="text-saffron text-sm mb-2">{item.date}</p>

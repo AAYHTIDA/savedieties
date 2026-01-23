@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, CreditCard, Wallet, Building2, CheckCircle2, Heart, Scale } from 'lucide-react';
 import { initiatePayment, RazorpayResponse } from '@/lib/razorpay';
+import Header from '@/components/Header';
 
 const ContributeGeneral: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const ContributeGeneral: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const finalAmount = getSelectedAmount();
     if (!finalAmount || parseFloat(finalAmount) <= 0) {
       alert('Please enter a valid amount');
@@ -65,7 +66,7 @@ const ContributeGeneral: React.FC = () => {
         console.log('Payment successful:', response);
         setIsProcessing(false);
         setShowSuccess(true);
-        
+
         // Redirect after 3 seconds
         setTimeout(() => {
           navigate('/');
@@ -104,7 +105,10 @@ const ContributeGeneral: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Add Header */}
+      <Header />
+
+      {/* Breadcrumb */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Button
@@ -119,36 +123,49 @@ const ContributeGeneral: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Top Row - Scan QR Code */}
-        <div className="mb-8">
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <Heart className="mr-2 h-5 w-5 text-orange-600" />
-                Scan & Pay
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex justify-center p-6">
-              <img 
-                src="/bhim-upi-qr.png"
-                alt="BHIM UPI QR Code"
-                className="w-48 h-48 object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </CardContent>
-          </Card>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Support Temple Protection</h1>
+          <p className="text-gray-600">Your contribution helps preserve our sacred temples and heritage</p>
         </div>
 
-        {/* Bottom Row - Account Payment & Support Temple Protection */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Account Payment */}
+        {/* Three Boxes Aligned Horizontally */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Left Column - Scan & Pay */}
           <div>
             <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 h-full">
               <CardHeader>
-                <CardTitle className="text-lg text-orange-600">Account Payment</CardTitle>
+                <CardTitle className="text-lg flex items-center justify-center">
+                  <Heart className="mr-2 h-5 w-5 text-orange-600" />
+                  Scan & Pay
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex justify-center p-6">
+                <div className="text-center">
+                  <img
+                    src="/bhim-upi-qr.png"
+                    alt="BHIM UPI QR Code"
+                    className="w-40 h-70 object-contain mx-auto mb-4"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (nextElement) nextElement.style.display = 'block';
+                    }}
+                  />
+                  <div className="hidden bg-gray-200 w-40 h-40 mx-auto mb-4 flex items-center justify-center rounded-lg">
+                    <span className="text-gray-500 text-sm">QR Code</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Scan with any UPI app</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Middle Column - Account Payment */}
+          <div>
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 h-full">
+              <CardHeader>
+                <CardTitle className="text-lg text-orange-600 text-center">Account Payment</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div>
@@ -175,16 +192,53 @@ const ContributeGeneral: React.FC = () => {
             </Card>
           </div>
 
-          {/* Right Column - Payment Form */}
+          {/* Right Column - Online Payment */}
+          <div>
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 h-full">
+              <CardHeader>
+                <CardTitle className="text-lg text-orange-600 text-center">Online Payment</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-4">Secure online payment with Razorpay</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <CreditCard className="h-4 w-4 text-gray-500" />
+                      <span className="text-xs text-gray-600">Credit/Debit Cards</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <Wallet className="h-4 w-4 text-gray-500" />
+                      <span className="text-xs text-gray-600">UPI & Wallets</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <Building2 className="h-4 w-4 text-gray-500" />
+                      <span className="text-xs text-gray-600">Net Banking</span>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                  onClick={() => document.getElementById('payment-form')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Pay Online
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Payment Form Section */}
+        <div id="payment-form" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Payment Form */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center">
                   <Heart className="mr-2 h-6 w-6 text-orange-600" />
-                  Support Temple Protection
+                  Online Payment Form
                 </CardTitle>
                 <CardDescription>
-                  Your contribution helps support legal proceedings and preservation of our sacred temples
+                  Fill in your details and amount to make a secure online payment
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -205,7 +259,7 @@ const ContributeGeneral: React.FC = () => {
                         </Button>
                       ))}
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="customAmount">Or Enter Custom Amount</Label>
                       <div className="relative">
@@ -226,7 +280,7 @@ const ContributeGeneral: React.FC = () => {
                   {/* Donor Details */}
                   <div className="space-y-4 pt-4 border-t">
                     <h3 className="font-semibold text-lg">Your Details</h3>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="donorName">Full Name *</Label>
                       <Input
@@ -276,84 +330,84 @@ const ContributeGeneral: React.FC = () => {
                         Processing...
                       </>
                     ) : (
-                      `Contribute ₹${getSelectedAmount() || '0'}`
+                      `Pay ₹${getSelectedAmount() || '0'} Online`
                     )}
                   </Button>
 
                   <p className="text-xs text-gray-500 text-center">
-                    Your contribution is secure and will be used for temple protection and legal proceedings
+                    Your payment is secure and will be processed through Razorpay
                   </p>
                 </form>
               </CardContent>
             </Card>
           </div>
-        </div>
 
-        {/* Bottom Section - Impact Card */}
-        <div className="mt-8">
-          <Card className="sticky top-4">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <Scale className="mr-2 h-5 w-5 text-orange-600" />
-                Your Impact
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-orange-600 font-bold">1</span>
+          {/* Right Column - Impact Information */}
+          <div>
+            <Card className="sticky top-4">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center">
+                  <Scale className="mr-2 h-5 w-5 text-orange-600" />
+                  Your Impact
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-orange-600 font-bold">1</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm">Legal Support</h4>
+                      <p className="text-xs text-gray-600">Fund court cases and legal proceedings</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">Legal Support</h4>
-                    <p className="text-xs text-gray-600">Fund court cases and legal proceedings</p>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-orange-600 font-bold">2</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm">Temple Protection</h4>
+                      <p className="text-xs text-gray-600">Preserve sacred properties and heritage</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-orange-600 font-bold">3</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm">Community Support</h4>
+                      <p className="text-xs text-gray-600">Help maintain temple sanctity</p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-orange-600 font-bold">2</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">Temple Protection</h4>
-                    <p className="text-xs text-gray-600">Preserve sacred properties and heritage</p>
-                  </div>
+                <Alert className="bg-orange-50 border-orange-200">
+                  <AlertDescription className="text-xs text-orange-900">
+                    <strong>44 Active Cases</strong> currently need your support. Your contribution helps cover legal fees, court costs, and advocacy efforts.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="pt-4 border-t space-y-2">
+                  <h4 className="font-semibold text-sm">Why Contribute?</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Protect temple properties</li>
+                    <li>• Support ongoing legal battles</li>
+                    <li>• Preserve cultural heritage</li>
+                    <li>• Ensure deity rights</li>
+                  </ul>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-orange-600 font-bold">3</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">Community Support</h4>
-                    <p className="text-xs text-gray-600">Help maintain temple sanctity</p>
-                  </div>
-                </div>
-              </div>
-
-              <Alert className="bg-orange-50 border-orange-200">
-                <AlertDescription className="text-xs text-orange-900">
-                  <strong>44 Active Cases</strong> currently need your support. Your contribution helps cover legal fees, court costs, and advocacy efforts.
-                </AlertDescription>
-              </Alert>
-
-              <div className="pt-4 border-t space-y-2">
-                <h4 className="font-semibold text-sm">Why Contribute?</h4>
-                <ul className="text-xs text-gray-600 space-y-1">
-                  <li>• Protect temple properties</li>
-                  <li>• Support ongoing legal battles</li>
-                  <li>• Preserve cultural heritage</li>
-                  <li>• Ensure deity rights</li>
-                </ul>
-              </div>
-
-              <Alert>
-                <AlertDescription className="text-xs">
-                  All contributions are treated as seva to the Temple Hundi and used for deity welfare.
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
+                <Alert>
+                  <AlertDescription className="text-xs">
+                    All contributions are treated as seva to the Temple Hundi and used for deity welfare.
+                  </AlertDescription>
+                </Alert>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

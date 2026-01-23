@@ -45,7 +45,7 @@ const Contribute: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const finalAmount = getSelectedAmount();
     if (!finalAmount || parseFloat(finalAmount) <= 0) {
       alert('Please enter a valid amount');
@@ -75,7 +75,7 @@ const Contribute: React.FC = () => {
         console.log('Payment successful:', response);
         setIsProcessing(false);
         setShowSuccess(true);
-        
+
         // Redirect after 3 seconds
         setTimeout(() => {
           navigate(`/court-cases/${id}`);
@@ -109,8 +109,8 @@ const Contribute: React.FC = () => {
             <Alert variant="destructive">
               <AlertDescription>Court case not found</AlertDescription>
             </Alert>
-            <Button 
-              onClick={() => navigate('/court-cases')} 
+            <Button
+              onClick={() => navigate('/court-cases')}
               className="mt-4 w-full"
               variant="outline"
             >
@@ -188,7 +188,7 @@ const Contribute: React.FC = () => {
                         </Button>
                       ))}
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="customAmount">Or Enter Custom Amount</Label>
                       <div className="relative">
@@ -209,7 +209,7 @@ const Contribute: React.FC = () => {
                   {/* Donor Details */}
                   <div className="space-y-4 pt-4 border-t">
                     <h3 className="font-semibold text-lg">Your Details</h3>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="donorName">Full Name *</Label>
                       <Input
@@ -285,7 +285,7 @@ const Contribute: React.FC = () => {
                     className="w-full h-40 object-cover rounded-lg"
                   />
                 )}
-                
+
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">
                     {courtCase.caseTitle}
