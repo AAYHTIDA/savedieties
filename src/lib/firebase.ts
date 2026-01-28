@@ -295,12 +295,19 @@ export const firebaseApi = {
         formData.append('photo', imageFile);
         
         console.log('Uploading main image to:', `${backendUrl}/api/court-cases/upload`);
+        console.log('Backend URL from env:', import.meta.env.VITE_BACKEND_URL);
+        console.log('File details:', { name: imageFile.name, size: imageFile.size, type: imageFile.type });
+        
         const response = await fetch(`${backendUrl}/api/court-cases/upload`, {
           method: 'POST',
           body: formData
         });
         
+        console.log('Response status:', response.status, response.statusText);
+        
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Backend error response:', errorText);
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
@@ -316,6 +323,11 @@ export const firebaseApi = {
         }
       } catch (error) {
         console.error('Image upload error:', error);
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : String(error),
+          backendUrl,
+          timestamp: new Date().toISOString()
+        });
         throw new Error(`Failed to upload image to server: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
